@@ -1,0 +1,2782 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GRH MDBESS</title>
+<style>
+
+:root{--primary:#1B5E20;--primary-d:#003300;--primary-l:#4CAF50;--primary-p:#E8F5E9;
+--secondary:#F9A825;--danger:#C62828;--danger-l:#FFEBEE;--warning:#E65100;--warning-l:#FFF8E1;
+--info:#1565C0;--info-l:#E3F2FD;--purple:#6A1B9A;--purple-l:#EDE7F6;--teal:#004D40;
+--gray:#37474F;--gray-l:#ECEFF1;--gray-m:#78909C;--white:#fff;--text:#212121;--border:#CFD8DC;
+--sh:0 2px 8px rgba(0,0,0,.12);--r:8px;--sw:240px;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:Arial,sans-serif;background:#F0F4F0;color:var(--text);font-size:13px;}
+#app{display:flex;height:100vh;overflow:hidden;}
+/* SIDEBAR */
+#sidebar{width:var(--sw);background:var(--primary);display:flex;flex-direction:column;
+  overflow-y:auto;transition:width .2s;flex-shrink:0;}
+#sidebar.collapsed{width:56px;}
+.sidebar-logo{padding:16px;border-bottom:1px solid #2E7D32;display:flex;align-items:center;gap:10px;}
+.logo-icon{font-size:28px;flex-shrink:0;}
+.logo-text .logo-title{color:#fff;font-size:13px;font-weight:700;line-height:1.2;}
+.logo-text .logo-sub{color:#A5D6A7;font-size:10px;}
+#sidebar.collapsed .logo-text,.sidebar-label{transition:opacity .2s;}
+#sidebar.collapsed .logo-text{display:none;}
+.sidebar-nav{flex:1;padding:8px 0;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:11px 16px;color:#C8E6C9;
+  text-decoration:none;cursor:pointer;transition:all .15s;border-left:3px solid transparent;}
+.nav-item:hover{background:#2E7D32;color:#fff;}
+.nav-item.active{background:#2E7D32;color:#fff;border-left-color:var(--secondary);}
+.nav-icon{font-size:16px;flex-shrink:0;width:20px;text-align:center;}
+#sidebar.collapsed .sidebar-label{display:none;}
+.nav-divider{height:1px;background:#2E7D32;margin:8px 12px;}
+.sidebar-footer{padding:12px 16px;border-top:1px solid #2E7D32;}
+.sidebar-version{color:#4CAF50;font-size:10px;}
+#sidebar.collapsed .sidebar-footer{display:none;}
+/* CONTENT */
+#content{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+#header{background:#fff;padding:0 20px;height:56px;display:flex;align-items:center;
+  justify-content:space-between;border-bottom:1px solid var(--border);box-shadow:0 1px 4px rgba(0,0,0,.08);
+  flex-shrink:0;gap:12px;}
+.header-left{display:flex;align-items:center;gap:12px;}
+#page-title{font-size:15px;font-weight:700;color:var(--primary);}
+.header-right{display:flex;align-items:center;gap:8px;}
+.header-date{font-size:11px;color:var(--gray-m);white-space:nowrap;}
+#main{flex:1;overflow-y:auto;padding:20px;}
+/* PAGES */
+.page{display:none;}.page.active{display:block;}
+/* CARDS */
+.card{background:#fff;border-radius:var(--r);padding:18px;box-shadow:var(--sh);margin-bottom:14px;}
+.card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+.card-title{font-size:14px;font-weight:700;color:var(--primary);}
+/* KPIs */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:12px;margin-bottom:18px;}
+.kpi-card{background:#fff;border-radius:var(--r);padding:16px;box-shadow:var(--sh);
+  border-left:4px solid var(--kc);position:relative;overflow:hidden;}
+.kpi-icon{font-size:28px;margin-bottom:6px;}
+.kpi-value{font-size:28px;font-weight:800;color:var(--kc);line-height:1;}
+.kpi-label{font-size:11px;color:var(--gray-m);margin-top:4px;}
+/* TABLES */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead th{background:var(--primary);color:#fff;padding:9px 10px;text-align:left;
+  font-weight:600;white-space:nowrap;}
+thead th:first-child{border-radius:4px 0 0 0;}thead th:last-child{border-radius:0 4px 0 0;}
+tbody tr{transition:background .1s;}
+tbody tr:nth-child(even){background:#F9FBF9;}
+tbody tr:hover{background:var(--primary-p);}
+tbody td{padding:9px 10px;border-bottom:1px solid var(--gray-l);vertical-align:middle;}
+/* BUTTONS */
+.btn{padding:7px 14px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600;
+  display:inline-flex;align-items:center;gap:5px;transition:all .15s;white-space:nowrap;}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:var(--primary);color:#fff;}.btn-primary:hover{background:#2E7D32;}
+.btn-secondary{background:var(--gray-l);color:var(--gray);}.btn-secondary:hover{background:#CFD8DC;}
+.btn-danger{background:var(--danger);color:#fff;}.btn-danger:hover{background:#B71C1C;}
+.btn-warning{background:var(--warning);color:#fff;}.btn-warning:hover{background:#BF360C;}
+.btn-info{background:var(--info);color:#fff;}.btn-info:hover{background:#0D47A1;}
+.btn-purple{background:var(--purple);color:#fff;}.btn-purple:hover{background:#4A148C;}
+.btn-teal{background:var(--teal);color:#fff;}.btn-teal:hover{background:#00251A;}
+.btn-sm{padding:4px 9px;font-size:11px;}
+.btn-xs{padding:3px 7px;font-size:11px;}
+/* BADGES */
+.badge{padding:3px 8px;border-radius:12px;font-size:10px;font-weight:700;white-space:nowrap;}
+.bg-success{background:#C8E6C9;color:#1B5E20;}
+.bg-danger{background:#FFCDD2;color:#B71C1C;}
+.bg-warning{background:#FFF8E1;color:#E65100;}
+.bg-info{background:#BBDEFB;color:#1565C0;}
+.bg-gray{background:var(--gray-l);color:var(--gray);}
+.bg-purple{background:#E1BEE7;color:#6A1B9A;}
+/* FORMS */
+.form-group{margin-bottom:13px;}
+.form-label{display:block;font-size:12px;font-weight:600;margin-bottom:4px;color:var(--gray);}
+.form-label .req{color:var(--danger);}
+.form-control{width:100%;padding:8px 10px;border:1.5px solid var(--border);border-radius:6px;
+  font-size:12px;outline:none;transition:border .15s;background:#fff;}
+.form-control:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(27,94,32,.12);}
+.form-control[readonly]{background:#F5F5F5;color:var(--gray-m);}
+select.form-control{cursor:pointer;}
+textarea.form-control{resize:vertical;min-height:70px;}
+.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;}
+.form-row-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+/* SEARCH BAR */
+.search-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center;}
+.search-input{flex:1;min-width:180px;padding:8px 10px;border:1.5px solid var(--border);
+  border-radius:6px;font-size:12px;outline:none;}
+.search-input:focus{border-color:var(--primary);}
+/* MODALS */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;
+  align-items:flex-start;justify-content:center;padding:30px 16px;overflow-y:auto;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:12px;width:100%;max-width:680px;box-shadow:0 20px 60px rgba(0,0,0,.3);
+  margin:auto;}
+.modal-lg{max-width:860px;}
+.modal-sm{max-width:440px;}
+.modal-header{padding:16px 20px;border-radius:12px 12px 0 0;display:flex;
+  justify-content:space-between;align-items:center;}
+.modal-header.primary{background:var(--primary);}
+.modal-header.danger{background:var(--danger);}
+.modal-header.info{background:var(--info);}
+.modal-header.purple{background:var(--purple);}
+.modal-header.warning{background:var(--warning);}
+.modal-title{color:#fff;font-size:14px;font-weight:700;}
+.modal-close{background:none;border:none;color:rgba(255,255,255,.7);font-size:22px;
+  cursor:pointer;line-height:1;padding:0 4px;}.modal-close:hover{color:#fff;}
+.modal-body{padding:20px;max-height:65vh;overflow-y:auto;}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--gray-l);
+  display:flex;justify-content:flex-end;gap:8px;border-radius:0 0 12px 12px;}
+/* TABS */
+.tabs{display:flex;border-bottom:2px solid var(--gray-l);margin-bottom:14px;gap:2px;}
+.tab{padding:8px 14px;cursor:pointer;color:var(--gray-m);font-size:12px;font-weight:600;
+  border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .15s;border-radius:4px 4px 0 0;}
+.tab:hover{color:var(--primary);background:var(--primary-p);}
+.tab.active{color:var(--primary);border-bottom-color:var(--primary);background:var(--primary-p);}
+/* SECTION TITLES */
+.section-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+.section-title{font-size:18px;font-weight:800;color:var(--primary);}
+.section-sub{color:var(--gray-m);font-size:11px;margin-top:2px;}
+/* ALERTS */
+.alert{padding:10px 14px;border-radius:6px;margin-bottom:12px;display:flex;align-items:flex-start;
+  gap:8px;font-size:12px;}
+.alert-info{background:var(--info-l);color:var(--info);border-left:3px solid var(--info);}
+.alert-warn{background:var(--warning-l);color:var(--warning);border-left:3px solid var(--warning);}
+.alert-danger{background:var(--danger-l);color:var(--danger);border-left:3px solid var(--danger);}
+.alert-success{background:var(--primary-p);color:var(--primary);border-left:3px solid var(--primary);}
+/* TOAST */
+#toast-container{position:fixed;top:70px;right:16px;z-index:3000;display:flex;flex-direction:column;gap:6px;}
+.toast{padding:11px 16px;border-radius:8px;color:#fff;font-size:12px;font-weight:600;
+  animation:slideIn .3s ease;min-width:240px;max-width:320px;box-shadow:0 4px 16px rgba(0,0,0,.2);}
+.toast-success{background:var(--primary);}
+.toast-error{background:var(--danger);}
+.toast-warning{background:var(--warning);}
+@keyframes slideIn{from{transform:translateX(110%);opacity:0;}to{transform:translateX(0);opacity:1;}}
+/* LOADING */
+.loading{display:none;position:fixed;inset:0;background:rgba(255,255,255,.85);z-index:4000;
+  align-items:center;justify-content:center;flex-direction:column;gap:14px;}
+.loading.active{display:flex;}
+.spinner{width:38px;height:38px;border:4px solid var(--primary-p);border-top-color:var(--primary);
+  border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+/* AUTOCOMPLETE */
+.autocomplete-wrap{position:relative;}
+.autocomplete-list{position:absolute;top:100%;left:0;right:0;background:#fff;border:1.5px solid var(--primary);
+  border-radius:0 0 6px 6px;z-index:200;max-height:180px;overflow-y:auto;box-shadow:var(--sh);}
+.autocomplete-item{padding:8px 10px;cursor:pointer;font-size:12px;border-bottom:1px solid var(--gray-l);}
+.autocomplete-item:hover{background:var(--primary-p);}
+.agent-badge{margin-top:5px;}
+/* PAGINATION */
+.pagination{display:flex;gap:4px;justify-content:center;margin-top:12px;flex-wrap:wrap;}
+.pg-btn{padding:5px 10px;border:1px solid var(--border);border-radius:4px;cursor:pointer;
+  font-size:11px;background:#fff;}.pg-btn.active{background:var(--primary);color:#fff;border-color:var(--primary);}
+.pg-btn:hover:not(.active){background:var(--primary-p);}
+/* ACTION BTNS */
+.actions{display:flex;gap:4px;flex-wrap:nowrap;}
+/* PROGRESS / SOLDE BAR */
+.solde-bar{height:7px;background:var(--gray-l);border-radius:4px;overflow:hidden;margin-top:3px;}
+.solde-fill{height:100%;border-radius:4px;}
+.sf-good{background:var(--primary);}
+.sf-warn{background:var(--warning);}
+.sf-danger{background:var(--danger);}
+/* DROP ZONE */
+.drop-zone{border:2px dashed var(--border);border-radius:8px;padding:28px;text-align:center;
+  cursor:pointer;transition:all .2s;color:var(--gray-m);}
+.drop-zone:hover,.drop-zone.over{border-color:var(--primary);background:var(--primary-p);color:var(--primary);}
+/* CHARTS */
+.chart-wrap{position:relative;height:220px;}
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+/* DOCUMENT LIST */
+.doc-item{display:flex;align-items:center;padding:10px;border-bottom:1px solid var(--gray-l);gap:10px;}
+.doc-icon{font-size:26px;flex-shrink:0;}
+.doc-info{flex:1;}
+.doc-name{font-weight:700;font-size:12px;}
+.doc-meta{font-size:10px;color:var(--gray-m);}
+/* AGENT LIST (documents sidebar) */
+.agent-list-item{padding:9px 12px;cursor:pointer;border-bottom:1px solid var(--gray-l);
+  font-size:12px;transition:background .1s;}
+.agent-list-item:hover{background:var(--primary-p);}
+.agent-list-item.sel{background:var(--primary-p);border-left:3px solid var(--primary);}
+/* RAPPORTS GRID */
+.rapports-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;}
+.rapport-card{background:#fff;border-radius:var(--r);padding:18px;box-shadow:var(--sh);
+  border-top:4px solid var(--rc);text-align:center;}
+.rapport-card .r-icon{font-size:36px;margin-bottom:10px;}
+.rapport-card .r-title{font-size:13px;font-weight:700;color:var(--rc);margin-bottom:6px;}
+.rapport-card .r-desc{font-size:11px;color:var(--gray-m);margin-bottom:14px;line-height:1.5;}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:#F5F5F5;}
+::-webkit-scrollbar-thumb{background:#CFD8DC;border-radius:3px;}
+/* RESPONSIVE */
+@media(max-width:768px){
+  #sidebar{width:56px;}.sidebar-label,.logo-text,.sidebar-footer{display:none;}
+  #main{padding:10px;}.charts-grid{grid-template-columns:1fr;}.form-row-3{grid-template-columns:1fr 1fr;}
+}
+/* PRINT STYLES */
+@media print{
+  #sidebar,#header,.no-print{display:none!important;}
+  #content{width:100%!important;}
+  body{background:#fff;}
+}
+
+</style>
+</head>
+<body>
+
+<div class="loading" id="loading"><div class="spinner"></div><div style="color:var(--primary);font-weight:700;">Chargement...</div></div>
+<div id="toast-container"></div>
+
+<!-- ═══ ÉCRAN DE CONNEXION ═══ -->
+<div id="login-screen" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#1B5E20,#2E7D32,#388E3C);z-index:9000;align-items:center;justify-content:center;">
+ <div style="background:#fff;border-radius:16px;padding:36px 32px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.3);margin:16px">
+  <div style="text-align:center;margin-bottom:28px">
+   <div style="font-size:48px">🏛️</div>
+   <div style="font-size:18px;font-weight:800;color:#1B5E20;margin-top:8px" id="login-min-name">GRH — Ministère</div>
+   <div style="font-size:12px;color:#78909C;margin-top:4px">Système de Gestion des Ressources Humaines</div>
+  </div>
+  <div id="login-error" style="display:none;background:#FFEBEE;color:#C62828;padding:10px 14px;border-radius:6px;font-size:12px;margin-bottom:14px;border-left:3px solid #C62828"></div>
+  <div style="margin-bottom:14px">
+   <label style="display:block;font-size:12px;font-weight:600;color:#37474F;margin-bottom:5px">Adresse email</label>
+   <input id="login-email" type="email" placeholder="votre@email.com" style="width:100%;padding:10px 12px;border:1.5px solid #CFD8DC;border-radius:8px;font-size:13px;outline:none" onkeydown="if(event.key==='Enter')Auth.login()">
+  </div>
+  <div style="margin-bottom:20px">
+   <label style="display:block;font-size:12px;font-weight:600;color:#37474F;margin-bottom:5px">Mot de passe</label>
+   <input id="login-pwd" type="password" placeholder="••••••••" style="width:100%;padding:10px 12px;border:1.5px solid #CFD8DC;border-radius:8px;font-size:13px;outline:none" onkeydown="if(event.key==='Enter')Auth.login()">
+  </div>
+  <button onclick="Auth.login()" style="width:100%;padding:12px;background:#1B5E20;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer" id="login-btn">Se connecter</button>
+  <div style="margin-top:16px;text-align:center">
+   <button onclick="Auth.resetPwd()" style="background:none;border:none;color:#78909C;font-size:11px;cursor:pointer;text-decoration:underline">Mot de passe oublié ?</button>
+  </div>
+ </div>
+</div>
+
+<div id="app">
+ <!-- SIDEBAR -->
+ <aside id="sidebar">
+  <div class="sidebar-logo">
+   <div class="logo-icon">🏛️</div>
+   <div class="logo-text"><div class="logo-title">GRH</div><div class="logo-sub"></div></div>
+  </div>
+  <nav class="sidebar-nav">
+   <a class="nav-item active" data-page="dashboard"><span class="nav-icon">📊</span><span class="sidebar-label">Tableau de bord</span></a>
+   <a class="nav-item" data-page="personnel"><span class="nav-icon">👥</span><span class="sidebar-label">Personnel</span></a>
+   <a class="nav-item" data-page="conges"><span class="nav-icon">🏖️</span><span class="sidebar-label">Congés</span></a>
+   <a class="nav-item" data-page="permissions"><span class="nav-icon">📋</span><span class="sidebar-label">Permissions</span></a>
+   <a class="nav-item" data-page="absences"><span class="nav-icon">⚠️</span><span class="sidebar-label">Absences</span></a>
+   <a class="nav-item" data-page="soldes"><span class="nav-icon">📈</span><span class="sidebar-label">Soldes &amp; Cumuls</span></a>
+   <div class="nav-divider"></div>
+   <a class="nav-item" data-page="documents"><span class="nav-icon">📁</span><span class="sidebar-label">Documents</span></a>
+   <a class="nav-item" data-page="rapports"><span class="nav-icon">🖨️</span><span class="sidebar-label">États &amp; Rapports</span></a>
+   <div class="nav-divider"></div>
+   <a class="nav-item" data-page="parametres"><span class="nav-icon">⚙️</span><span class="sidebar-label">Paramètres</span></a>
+  </nav>
+  <div class="sidebar-footer"><div class="sidebar-version">GRH v2.0 · 2025</div></div>
+ </aside>
+
+ <!-- MAIN CONTENT -->
+ <div id="content">
+  <header id="header">
+   <div class="header-left">
+    <button class="btn btn-secondary btn-sm" id="btn-toggle">☰</button>
+    <span id="page-title">Tableau de bord</span>
+   </div>
+   <div class="header-right">
+    <button class="btn btn-secondary btn-sm no-print" onclick="Excel.exportAll()">⬇️ Export Excel</button>
+    <button class="btn btn-secondary btn-sm no-print" onclick="Excel.showImport()">⬆️ Importer</button>
+    <div class="header-date" id="hdate"></div>
+    <div style="display:flex;align-items:center;gap:8px;margin-left:8px;padding-left:8px;border-left:1px solid var(--border)">
+     <span id="user-badge" style="font-size:11px;font-weight:700;color:var(--primary);background:var(--primary-p);padding:4px 10px;border-radius:12px"></span>
+     <button class="btn btn-secondary btn-sm no-print" onclick="Auth.logout()" title="Déconnexion">🚪</button>
+    </div>
+   </div>
+  </header>
+
+  <main id="main">
+   <!-- DASHBOARD -->
+   <section id="page-dashboard" class="page active">
+    <div class="section-head">
+     <div><div class="section-title">📊 Tableau de bord</div><div class="section-sub">Vue d'ensemble des ressources humaines</div></div>
+     <button class="btn btn-primary btn-sm" onclick="Dashboard.load()">🔄 Actualiser</button>
+    </div>
+    <div class="kpi-grid" id="kpi-grid"></div>
+    <div class="charts-grid">
+     <div class="card"><div class="card-title" style="margin-bottom:8px">Répartition par contrat</div><div class="chart-wrap"><canvas id="ch-contrats"></canvas></div></div>
+     <div class="card"><div class="card-title" style="margin-bottom:8px">Répartition H / F</div><div class="chart-wrap"><canvas id="ch-sexe"></canvas></div></div>
+    </div>
+    <div class="charts-grid">
+     <div class="card"><div class="card-title" style="margin-bottom:8px">Statuts des congés</div><div class="chart-wrap"><canvas id="ch-conges"></canvas></div></div>
+     <div class="card"><div class="card-title" style="margin-bottom:8px">Types d'absences</div><div class="chart-wrap"><canvas id="ch-absences"></canvas></div></div>
+    </div>
+    <div class="card"><div class="card-header"><div class="card-title">⚡ Alertes RH</div></div><div id="alerts-list"></div></div>
+   </section>
+
+   <!-- PERSONNEL -->
+   <section id="page-personnel" class="page">
+    <div class="section-head">
+     <div><div class="section-title">👥 Registre du Personnel</div><div class="section-sub">Gestion des agents du ministère</div></div>
+     <button class="btn btn-primary" onclick="Personnel.showAdd()">＋ Nouvel Agent</button>
+    </div>
+    <div class="card">
+     <div class="search-bar">
+      <input class="search-input" id="p-search" placeholder="Nom, matricule, direction..." oninput="Personnel.search(this.value)">
+      <select class="form-control" style="width:160px" id="p-f-contrat" onchange="Personnel.filter()">
+       <option value="">Tous contrats</option><option>Fonctionnaire</option><option>Contractuel</option><option>Stagiaire</option>
+      </select>
+      <select class="form-control" style="width:160px" id="p-f-dir" onchange="Personnel.filter()">
+       <option value="">Toutes directions</option>
+      </select>
+      <select class="form-control" style="width:150px" id="p-f-statut" onchange="Personnel.filter()">
+       <option value="">Tous statuts</option><option>En activité</option><option>En congé</option><option>En détachement</option><option>Mise en indisponibilité</option><option>Maintien par ordre sans affectation</option><option>Sous les drapeaux</option><option>Hors cadres</option>
+      </select>
+      <select class="form-control" style="width:160px" id="p-sort" onchange="Personnel.filter()">
+       <option value="matricule">Trier: Matricule</option>
+       <option value="nom">Trier: Nom A-Z</option>
+       <option value="anciennete">Trier: Ancienneté</option>
+       <option value="retraite">Trier: Retraite ↑</option>
+       <option value="direction">Trier: Direction</option>
+      </select>
+     </div>
+     <div class="search-bar" style="margin-bottom:8px;align-items:center">
+      <label style="font-size:11px;font-weight:600;color:var(--gray-m);white-space:nowrap">📅 Période prise de service :</label>
+      <input type="date" class="form-control" id="p-f-dps1" style="width:155px" onchange="Personnel.filter()" title="Date de prise de service — du">
+      <span style="font-size:11px;color:var(--gray-m)">au</span>
+      <input type="date" class="form-control" id="p-f-dps2" style="width:155px" onchange="Personnel.filter()" title="Date de prise de service — au">
+      <button class="btn btn-secondary btn-sm" onclick="Personnel.clearFilters()">✕ Effacer filtres</button>
+      <span id="p-count" style="font-size:11px;font-weight:700;color:var(--primary);margin-left:4px"></span>
+      <button class="btn btn-primary btn-sm no-print" onclick="Print.etatPersonnelFiltre()">🖨️ Imprimer sélection</button>
+     </div>
+     <div class="table-wrap">
+      <table><thead><tr><th>Matricule</th><th>Nom &amp; Prénoms</th><th>Sexe</th><th>Direction/Service</th><th>Poste</th><th>Contrat</th><th>Catég.</th><th>Anc.</th><th>Retraite</th><th>Statut</th><th>Actions</th></tr></thead>
+      <tbody id="p-tbody"></tbody></table>
+     </div>
+     <div class="pagination" id="p-pages"></div>
+    </div>
+   </section>
+
+   <!-- CONGES -->
+   <section id="page-conges" class="page">
+    <div class="section-head">
+     <div><div class="section-title">🏖️ Gestion des Congés</div><div class="section-sub">Demandes, approbations et suivi</div></div>
+     <button class="btn btn-primary" onclick="Conges.showAdd()">＋ Nouvelle Demande</button>
+    </div>
+    <div class="card">
+     <div class="search-bar">
+      <input class="search-input" id="c-search" placeholder="Agent, type de congé..." oninput="Conges.search(this.value)">
+      <select class="form-control" style="width:150px" id="c-f-statut" onchange="Conges.filter()">
+       <option value="">Tous statuts</option><option>En attente</option><option>Approuvé</option><option>En cours</option><option>Soldé</option><option>Refusé</option>
+      </select>
+      <select class="form-control" style="width:160px" id="c-f-type" onchange="Conges.filter()">
+       <option value="">Tous types</option><option>Congé annuel</option><option>Congé de maladie ordinaire</option><option>Congé maternité</option>
+      </select>
+     </div>
+     <div class="table-wrap">
+      <table><thead><tr><th>Réf</th><th>Agent</th><th>Type de Congé</th><th>Départ</th><th>Retour prévu</th><th>Jours</th><th>Statut</th><th>Actions</th></tr></thead>
+      <tbody id="c-tbody"></tbody></table>
+     </div>
+     <div class="pagination" id="c-pages"></div>
+    </div>
+   </section>
+
+   <!-- PERMISSIONS -->
+   <section id="page-permissions" class="page">
+    <div class="section-head">
+     <div><div class="section-title">📋 Permissions &amp; Autorisations</div><div class="section-sub">Mariage, décès, naissance, mission…</div></div>
+     <button class="btn btn-primary" onclick="Permissions.showAdd()">＋ Nouvelle Permission</button>
+    </div>
+    <div class="card">
+     <div class="search-bar">
+      <input class="search-input" id="pm-search" placeholder="Agent, motif..." oninput="Permissions.search(this.value)">
+      <select class="form-control" style="width:150px" id="pm-f-statut" onchange="Permissions.filter()">
+       <option value="">Tous statuts</option><option>En attente</option><option>Approuvé</option><option>Refusé</option>
+      </select>
+     </div>
+     <div class="table-wrap">
+      <table><thead><tr><th>Réf</th><th>Agent</th><th>Motif</th><th>Début</th><th>Fin</th><th>J. Légaux</th><th>J. Accordés</th><th>Justificatif</th><th>Statut</th><th>Actions</th></tr></thead>
+      <tbody id="pm-tbody"></tbody></table>
+     </div>
+     <div class="pagination" id="pm-pages"></div>
+    </div>
+   </section>
+
+   <!-- ABSENCES -->
+   <section id="page-absences" class="page">
+    <div class="section-head">
+     <div><div class="section-title">⚠️ Absences &amp; Retards</div><div class="section-sub">Suivi des irrégularités et sanctions</div></div>
+     <button class="btn btn-danger" onclick="Absences.showAdd()">＋ Enregistrer Absence</button>
+    </div>
+    <div class="card">
+     <div class="search-bar">
+      <input class="search-input" id="ab-search" placeholder="Agent, direction..." oninput="Absences.search(this.value)">
+      <select class="form-control" style="width:190px" id="ab-f-type" onchange="Absences.filter()">
+       <option value="">Tous types</option><option>Absence injustifiée</option><option>Retard</option><option>Départ anticipé</option><option>Abandon de poste</option>
+      </select>
+     </div>
+     <div class="table-wrap">
+      <table><thead><tr><th>Réf</th><th>Agent</th><th>Direction</th><th>Type</th><th>Date</th><th>Jours/H</th><th>Cumul</th><th>Sanction</th><th>Statut</th><th>Actions</th></tr></thead>
+      <tbody id="ab-tbody"></tbody></table>
+     </div>
+     <div class="pagination" id="ab-pages"></div>
+    </div>
+   </section>
+
+   <!-- SOLDES -->
+   <section id="page-soldes" class="page">
+    <div class="section-head">
+     <div><div class="section-title">📈 Soldes &amp; Cumuls de Congés</div><div class="section-sub">Droits, pris, restants et alertes par agent</div></div>
+     <button class="btn btn-teal btn-sm" onclick="Soldes.load()">🔄 Recalculer</button>
+    </div>
+    <div class="card">
+     <div class="search-bar">
+      <input class="search-input" id="sl-search" placeholder="Agent, matricule..." oninput="Soldes.render()">
+      <select class="form-control" style="width:180px" id="sl-f-alert" onchange="Soldes.render()">
+       <option value="">Toutes situations</option><option value="crit">Solde critique (&lt;5j)</option><option value="dep">Dépassement cumul</option><option value="ok">Situation normale</option>
+      </select>
+     </div>
+     <div class="table-wrap">
+      <table><thead><tr><th>Matricule</th><th>Agent</th><th>Contrat</th><th>Anc.</th><th>Droits/An</th><th>Cumul Max</th><th>Pris</th><th>Solde</th><th>Reportable</th><th>Situation</th></tr></thead>
+      <tbody id="sl-tbody"></tbody></table>
+     </div>
+    </div>
+   </section>
+
+   <!-- DOCUMENTS -->
+   <section id="page-documents" class="page">
+    <div class="section-title" style="margin-bottom:14px">📁 Documents de Vérification</div>
+    <div style="display:grid;grid-template-columns:260px 1fr;gap:14px">
+     <div class="card" style="padding:0;overflow:hidden">
+      <div style="padding:12px;background:var(--primary);color:#fff;font-weight:700;font-size:12px">👥 Agents</div>
+      <div style="padding:8px"><input class="form-control" id="doc-ag-search" placeholder="Rechercher agent..." oninput="Documents.searchAgent(this.value)" style="font-size:11px"></div>
+      <div id="doc-agent-list" style="max-height:500px;overflow-y:auto"></div>
+     </div>
+     <div>
+      <div id="doc-placeholder" class="card" style="text-align:center;padding:60px 20px;color:var(--gray-m)">
+       <div style="font-size:48px;margin-bottom:12px">📁</div>
+       <div>Sélectionnez un agent pour gérer ses documents</div>
+      </div>
+      <div id="doc-main-card" class="card" style="display:none">
+       <div class="card-header">
+        <div class="card-title" id="doc-agent-name">Documents</div>
+        <button class="btn btn-primary btn-sm" onclick="Documents.showUpload()">＋ Ajouter Document</button>
+       </div>
+       <div id="doc-list"></div>
+      </div>
+     </div>
+    </div>
+   </section>
+
+   <!-- RAPPORTS -->
+   <section id="page-rapports" class="page">
+    <div class="section-head"><div><div class="section-title">🖨️ États &amp; Rapports Officiels</div><div class="section-sub">Génération et impression des documents RH</div></div></div>
+    <div class="rapports-grid" id="rapports-grid"></div>
+   </section>
+
+   <!-- PARAMETRES -->
+   <section id="page-parametres" class="page">
+    <div class="section-title" style="margin-bottom:14px">⚙️ Paramètres du Système</div>
+    <div class="tabs" id="params-tabs">
+     <div class="tab active" data-ptab="droits" onclick="Params.tab(this)">Droits Congés</div>
+     <div class="tab" data-ptab="permlegal" onclick="Params.tab(this)">Permissions Légales</div>
+     <div class="tab" data-ptab="dirs" onclick="Params.tab(this)">Directions</div>
+     <div class="tab" data-ptab="users" onclick="Params.tab(this)">👥 Utilisateurs</div>
+     <div class="tab" data-ptab="sys" onclick="Params.tab(this)">Système</div>
+    </div>
+    <div id="pt-droits">
+     <div class="card"><div class="card-header"><div class="card-title">Droits à congés (Statut GFP)</div><button class="btn btn-primary btn-sm" onclick="Params.addDroit()">＋ Ajouter</button></div>
+     <div class="table-wrap"><table><thead><tr><th>Type Contrat</th><th>De (ans)</th><th>À (ans)</th><th>Jours/an</th><th>Cumul Max</th><th>Base légale</th><th>Actions</th></tr></thead><tbody id="pt-droits-tb"></tbody></table></div></div>
+    </div>
+    <div id="pt-permlegal" style="display:none">
+     <div class="card"><div class="card-header"><div class="card-title">Permissions exceptionnelles (Art. 222-230 Statut GFP)</div><button class="btn btn-purple btn-sm" onclick="Params.addPerm()">＋ Ajouter</button></div>
+     <div class="table-wrap"><table><thead><tr><th>Motif</th><th>Jours légaux</th><th>Justificatif requis</th><th>Actions</th></tr></thead><tbody id="pt-perm-tb"></tbody></table></div></div>
+    </div>
+    <div id="pt-dirs" style="display:none">
+     <div class="card">
+      <div class="card-header"><div class="card-title">Directions &amp; Services</div><button class="btn btn-primary btn-sm" onclick="Params.addDir()">＋ Ajouter</button></div>
+      <div id="pt-dirs-list"></div>
+     </div>
+    </div>
+    <div id="pt-users" style="display:none">
+     <div class="card">
+      <div class="card-header"><div class="card-title">👥 Gestion des Utilisateurs</div><button class="btn btn-primary btn-sm" onclick="Users.invite()">✉️ Inviter un utilisateur</button></div>
+      <div class="alert alert-info" style="margin-bottom:12px;font-size:11px">Les rôles : <strong>Admin</strong> = accès total · <strong>Gestionnaire</strong> = saisie/modification · <strong>Chef de service</strong> = lecture de sa direction uniquement. Pour inviter un nouvel utilisateur, utilisez Supabase Dashboard → Authentication → Users → Invite.</div>
+      <div class="table-wrap"><table><thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Direction</th><th>Statut</th><th>Actions</th></tr></thead><tbody id="users-tb"></tbody></table></div>
+     </div>
+    </div>
+    <div id="pt-sys" style="display:none">
+     <div class="card">
+      <div class="card-title" style="margin-bottom:14px">Informations du Ministère</div>
+      <div class="form-row">
+       <div class="form-group"><label class="form-label">Nom du Ministère</label><input class="form-control" id="sys-ministere" placeholder="Ministère de..."></div>
+       <div class="form-group"><label class="form-label">Exercice</label><input class="form-control" id="sys-exercice" type="number" value="2025"></div>
+      </div>
+      <div class="form-row">
+       <div class="form-group"><label class="form-label">Directeur des Affaires Financières</label><input class="form-control" id="sys-drh"></div>
+       <div class="form-group"><label class="form-label">Adresse</label><input class="form-control" id="sys-adresse" placeholder="Lomé, Togo"></div>
+      </div>
+      <button class="btn btn-primary" onclick="Params.saveSys()">💾 Enregistrer</button>
+     </div>
+     <div class="card" style="margin-top:12px">
+      <div class="card-title" style="margin-bottom:12px">Gestion des données</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+       <button class="btn btn-warning" onclick="Excel.exportAll()">⬇️ Exporter tout en Excel</button>
+       <button class="btn btn-info" onclick="Excel.showImport()">⬆️ Importer depuis Excel</button>
+       <button class="btn btn-danger" onclick="App.resetDB()">🗑️ Réinitialiser la base</button>
+      </div>
+     </div>
+    </div>
+   </section>
+  </main>
+ </div>
+</div>
+
+<!-- ═══════════════ MODALS ═══════════════ -->
+
+<!-- AGENT MODAL -->
+<div class="modal-overlay" id="m-agent">
+ <div class="modal">
+  <div class="modal-header primary">
+   <div class="modal-title" id="m-agent-title">Nouvel Agent</div>
+   <button class="modal-close" onclick="UI.close('m-agent')">×</button>
+  </div>
+  <div class="modal-body">
+   <input type="hidden" id="a-id">
+   <div class="tabs" id="a-tabs">
+    <div class="tab active" data-atab="0">👤 Identité</div>
+    <div class="tab" data-atab="1">🏛 Poste &amp; Contrat</div>
+    <div class="tab" data-atab="2">📝 Compléments</div>
+   </div>
+   <div id="at-0">
+    <div class="form-row"><div class="form-group"><label class="form-label">Matricule <span class="req">*</span></label><input class="form-control" id="a-mat" placeholder="MAT001"></div><div class="form-group"><label class="form-label">Sexe <span class="req">*</span></label><select class="form-control" id="a-sexe"><option value="">--</option><option>Masculin</option><option>Féminin</option></select></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Nom <span class="req">*</span></label><input class="form-control" id="a-nom"></div><div class="form-group"><label class="form-label">Prénoms <span class="req">*</span></label><input class="form-control" id="a-prenom"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Date de naissance</label><input class="form-control" id="a-ddn" type="date" onchange="Personnel.validateDdn(this)"></div><div class="form-group"><label class="form-label">Lieu de naissance</label><input class="form-control" id="a-lieu-n" placeholder="Lomé"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Situation matrimoniale</label><select class="form-control" id="a-matri"><option value="">--</option><option>Célibataire</option><option>Marié(e)</option><option>Divorcé(e)</option><option>Veuf/Veuve</option></select></div><div class="form-group"><label class="form-label">Nb Enfants</label><input class="form-control" id="a-enfants" type="number" min="0" value="0"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">N° CNI / Passeport</label><input class="form-control" id="a-cni"></div><div class="form-group"><label class="form-label">Téléphone</label><input class="form-control" id="a-tel"></div></div>
+    <div class="form-group"><label class="form-label">Email</label><input class="form-control" id="a-email" type="email"></div>
+   </div>
+   <div id="at-1" style="display:none">
+    <div class="form-row"><div class="form-group"><label class="form-label">Type de statut <span class="req">*</span></label><select class="form-control" id="a-contrat" onchange="Personnel.updContrat()"><option value="">--</option></select></div><div class="form-group"><label class="form-label">Catégorie</label><select class="form-control" id="a-cat"><option value="">--</option><option>A1</option><option>A2</option><option>B1</option><option>B2</option><option>C1</option><option>C2</option><option>D</option></select></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Corps</label><input class="form-control" id="a-corps"></div><div class="form-group"><label class="form-label">Échelon</label><input class="form-control" id="a-echelon"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Direction / Service <span class="req">*</span></label><input class="form-control" id="a-dir" list="dirs-dl"><datalist id="dirs-dl"></datalist></div><div class="form-group"><label class="form-label">Poste / Emploi <span class="req">*</span></label><input class="form-control" id="a-poste"></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Lieu d'affectation</label><input class="form-control" id="a-lieu-a" value="Lomé"></div><div class="form-group"><label class="form-label">Statut</label><select class="form-control" id="a-statut"><option>En activité</option><option>En congé</option><option>En mission</option><option>Suspendu</option><option>Retraité</option><option>Décédé</option></select></div></div>
+    <div class="form-row"><div class="form-group"><label class="form-label">Date prise de service <span class="req">*</span></label><input class="form-control" id="a-dps" type="date" onchange="Personnel.updContrat();Personnel.validateDps(this)"></div><div class="form-group"><label class="form-label">Date fin de contrat</label><input class="form-control" id="a-dfc" type="date"></div></div>
+    <div id="a-droits-info" class="alert alert-info" style="display:none"></div>
+   </div>
+   <div id="at-2" style="display:none">
+    <div class="form-row"><div class="form-group"><label class="form-label">N° Compte bancaire</label><input class="form-control" id="a-banque"></div><div class="form-group"><label class="form-label">Diplôme le plus élevé</label><input class="form-control" id="a-diplome"></div></div>
+    <div class="form-group"><label class="form-label">Spécialité / Domaine</label><input class="form-control" id="a-specialite"></div>
+    <div class="form-group"><label class="form-label">Nominations</label><textarea class="form-control" id="a-nomi" rows="3"></textarea></div>
+    <div class="form-group"><label class="form-label">Observations</label><textarea class="form-control" id="a-obs" rows="3"></textarea></div>
+   </div>
+  </div>
+  <div class="modal-footer">
+   <div style="margin-right:auto;display:flex;gap:6px">
+    <button class="btn btn-secondary btn-sm" onclick="Personnel.prevTab()">← Préc.</button>
+    <button class="btn btn-secondary btn-sm" onclick="Personnel.nextTab()">Suiv. →</button>
+   </div>
+   <button class="btn btn-secondary" onclick="UI.close('m-agent')">Annuler</button>
+   <button class="btn btn-primary" onclick="Personnel.save()">💾 Enregistrer</button>
+  </div>
+ </div>
+</div>
+
+<!-- CONGE MODAL -->
+<div class="modal-overlay" id="m-conge">
+ <div class="modal">
+  <div class="modal-header info"><div class="modal-title" id="m-conge-title">Demande de Congé</div><button class="modal-close" onclick="UI.close('m-conge')">×</button></div>
+  <div class="modal-body">
+   <input type="hidden" id="cg-id">
+   <div class="form-row">
+    <div class="form-group"><label class="form-label">Agent <span class="req">*</span></label>
+     <div class="autocomplete-wrap"><input class="form-control" id="cg-ag-search" placeholder="Nom ou matricule..." oninput="UI.acSearch(this,'cg-ag-id','cg-ag-disp')"><div class="autocomplete-list" id="cg-ag-ac"></div></div>
+     <input type="hidden" id="cg-ag-id"><div id="cg-ag-disp" class="agent-badge"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Type de congé <span class="req">*</span></label>
+     <select class="form-control" id="cg-type" onchange="Conges.updType()"><option value="">--</option><option>Congé annuel</option><option>Congé de maladie ordinaire</option><option>Congé longue maladie</option><option>Congé de longue durée</option><option>Congé maternité</option><option>Congé paternité</option><option>Récupération</option></select>
+    </div>
+   </div>
+   <div class="form-row">
+    <div class="form-group"><label class="form-label">Date de départ <span class="req">*</span></label><input class="form-control" id="cg-dep" type="date" onchange="Conges.calcJ()"></div>
+    <div class="form-group"><label class="form-label">Date retour prévue <span class="req">*</span></label><input class="form-control" id="cg-ret" type="date" onchange="Conges.calcJ()"></div>
+   </div>
+   <div class="form-row">
+    <div class="form-group"><label class="form-label">Date reprise effective</label><input class="form-control" id="cg-rep" type="date"></div>
+    <div class="form-group"><label class="form-label">Intérimaire désigné</label><input class="form-control" id="cg-interi"></div>
+   </div>
+   <div class="form-row">
+    <div class="form-group"><label class="form-label">Jours demandés</label><input class="form-control" id="cg-jd" readonly></div>
+    <div class="form-group"><label class="form-label">Jours accordés</label><input class="form-control" id="cg-ja" type="number" min="0"></div>
+   </div>
+   <div id="cg-solde-info" class="alert alert-info" style="display:none"></div>
+   <div class="form-row">
+    <div class="form-group"><label class="form-label">Statut</label><select class="form-control" id="cg-statut"><option>En attente</option><option>Approuvé</option><option>En cours</option><option>Soldé</option><option>Refusé</option><option>Annulé</option></select></div>
+    <div class="form-group"><label class="form-label">Visa / Approbateur</label><input class="form-control" id="cg-visa"></div>
+   </div>
+   <div class="form-group"><label class="form-label">Observations</label><textarea class="form-control" id="cg-obs" rows="2"></textarea></div>
+  </div>
+  <div class="modal-footer">
+   <button class="btn btn-secondary" onclick="UI.close('m-conge')">Annuler</button>
+   <button class="btn btn-primary" onclick="Conges.save()">💾 Enregistrer</button>
+  </div>
+ </div>
+</div>
+
+<!-- PERMISSION MODAL -->
+<div class="modal-overlay" id="m-perm">
+ <div class="modal">
+  <div class="modal-header purple"><div class="modal-title" id="m-perm-title">Nouvelle Permission</div><button class="modal-close" onclick="UI.close('m-perm')">×</button></div>
+  <div class="modal-body">
+   <input type="hidden" id="pm-id">
+   <div class="form-row">
+    <div class="form-group"><label class="form-label">Agent <span class="req">*</span></label>
+     <div class="autocomplete-wrap"><input class="form-control" id="pm-ag-search" placeholder="Nom ou matricule..." oninput="UI.acSearch(this,'pm-ag-id','pm-ag-disp')"><div class="autocomplete-list" id="pm-ag-ac"></div></div>
+     <input type="hidden" id="pm-ag-id"><div id="pm-ag-disp" class="agent-badge"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Motif <span class="req">*</span></label>
+     <select class="form-control" id="pm-motif" onchange="Permissions.updLegal()"><option value="">--</option>
+     <option>Mariage de l'agent</option><option>Mariage d'un enfant</option>
+     <option>Décès conjoint / enfant</option><option>Décès père / mère</option>
+     <option>Décès frère / sœur</option><option>Naissance enfant (père)</option>
+     <option>Déménagement</option><option>Maladie grave conjoint/enfant</option>
+     <option>Examen universitaire</option><option>Mission officielle</option>
+     <option>Formation professionnelle</option><option>Congé maternité</option>
+     <option>Congé paternité</option><option>Congé maladie ordinaire</option>
+     </select>
+    </div>
+   </div>
+   <div id="pm-legal-info" class="alert alert-info" style="display:none"></div>
+   <div class="form-row">
+    <div class="form-group"><label class="form-label">Date début <span class="req">*</span></label><input class="form-control" id="pm-deb" type="date" onchange="Permissions.calcJ()"></div>
+    <div class="form-group"><label class="form-label">Date fin prévue <span class="req">*</span></label><input class="form-control" id="pm-fin" type="date" onchange="Permissions.calcJ()"></div>
+   </div>
+   <div class="form-row">
+    <div class="form-group"><label class="form-label">Jours légaux</label><input class="form-control" id="pm-jl" readonly></div>
+    <div class="form-group"><label class="form-label">Jours demandés</label><input class="form-control" id="pm-jd" readonly></div>
+    <div class="form-group"><label class="form-label">Jours accordés</label><input class="form-control" id="pm-ja" type="number" min="0"></div>
+   </div>
+   <div class="form-row">
+    <div class="form-group"><label class="form-label">Date retour effectif</label><input class="form-control" id="pm-ret" type="date"></div>
+    <div class="form-group"><label class="form-label">Justificatif fourni</label><select class="form-control" id="pm-justif"><option value="Non">Non fourni</option><option value="En cours">En cours</option><option value="Oui">Fourni ✓</option></select></div>
+   </div>
+   <div class="form-row">
+    <div class="form-group"><label class="form-label">Réf. justificatif</label><input class="form-control" id="pm-refjust"></div>
+    <div class="form-group"><label class="form-label">Statut</label><select class="form-control" id="pm-statut"><option>En attente</option><option>Approuvé</option><option>Refusé</option><option>Annulé</option></select></div>
+   </div>
+   <div class="form-group"><label class="form-label">Observations</label><input class="form-control" id="pm-obs"></div>
+  </div>
+  <div class="modal-footer">
+   <button class="btn btn-secondary" onclick="UI.close('m-perm')">Annuler</button>
+   <button class="btn btn-primary" onclick="Permissions.save()">💾 Enregistrer</button>
+  </div>
+ </div>
+</div>
+
+<!-- ABSENCE MODAL -->
+<div class="modal-overlay" id="m-abs">
+ <div class="modal modal-sm">
+  <div class="modal-header danger"><div class="modal-title" id="m-abs-title">Enregistrer Absence</div><button class="modal-close" onclick="UI.close('m-abs')">×</button></div>
+  <div class="modal-body">
+   <input type="hidden" id="ab-id">
+   <div class="form-group"><label class="form-label">Agent <span class="req">*</span></label>
+    <div class="autocomplete-wrap"><input class="form-control" id="ab-ag-search" placeholder="Nom ou matricule..." oninput="UI.acSearch(this,'ab-ag-id','ab-ag-disp')"><div class="autocomplete-list" id="ab-ag-ac"></div></div>
+    <input type="hidden" id="ab-ag-id"><div id="ab-ag-disp" class="agent-badge"></div>
+   </div>
+   <div class="form-row">
+    <div class="form-group"><label class="form-label">Type <span class="req">*</span></label><select class="form-control" id="ab-type"><option value="">--</option><option>Absence injustifiée</option><option>Retard</option><option>Départ anticipé</option><option>Abandon de poste</option><option>Maladie sans certificat</option></select></div>
+    <div class="form-group"><label class="form-label">Date <span class="req">*</span></label><input class="form-control" id="ab-date" type="date"></div>
+   </div>
+   <div class="form-row">
+    <div class="form-group"><label class="form-label">Heure arrivée (retard)</label><input class="form-control" id="ab-heure" type="time"></div>
+    <div class="form-group"><label class="form-label">Nb jours / heures</label><input class="form-control" id="ab-nbj" type="number" min="0.5" step="0.5" value="1"></div>
+   </div>
+   <div class="form-group"><label class="form-label">Motif déclaré</label><input class="form-control" id="ab-motif"></div>
+   <div class="form-row">
+    <div class="form-group"><label class="form-label">Statut traitement</label><select class="form-control" id="ab-statut"><option>En traitement</option><option>Classé</option><option>Sanctionné</option><option>En attente</option></select></div>
+   </div>
+   <div class="form-group"><label class="form-label">Observations / Suite donnée</label><textarea class="form-control" id="ab-obs" rows="2"></textarea></div>
+  </div>
+  <div class="modal-footer">
+   <button class="btn btn-secondary" onclick="UI.close('m-abs')">Annuler</button>
+   <button class="btn btn-danger" onclick="Absences.save()">💾 Enregistrer</button>
+  </div>
+ </div>
+</div>
+
+<!-- DOCUMENT MODAL -->
+<div class="modal-overlay" id="m-doc">
+ <div class="modal modal-sm">
+  <div class="modal-header primary"><div class="modal-title">📄 Ajouter un Document</div><button class="modal-close" onclick="UI.close('m-doc')">×</button></div>
+  <div class="modal-body">
+   <input type="hidden" id="doc-ag-id-f">
+   <div class="form-group"><label class="form-label">Type de document</label>
+    <select class="form-control" id="doc-type"><option>Acte de naissance</option><option>CNI / Passeport</option><option>Diplôme</option><option>Acte de mariage</option><option>Acte de décès</option><option>Certificat médical</option><option>Ordre de mission</option><option>Décision de nomination</option><option>Arrêté de titularisation</option><option>Contrat de travail</option><option>Autres</option></select>
+   </div>
+   <div class="form-group"><label class="form-label">Intitulé du document <span class="req">*</span></label><input class="form-control" id="doc-nom" placeholder="ex: Acte de naissance N°123/2000"></div>
+   <div class="form-row">
+    <div class="form-group"><label class="form-label">Date du document</label><input class="form-control" id="doc-date" type="date"></div>
+    <div class="form-group"><label class="form-label">Lié à</label><select class="form-control" id="doc-lien"><option value="">Dossier général</option><option value="conge">Congé</option><option value="permission">Permission</option><option value="absence">Absence</option></select></div>
+   </div>
+   <div class="form-group"><label class="form-label">Fichier (PDF, JPG, PNG — max 5Mo)</label>
+    <div class="drop-zone" id="doc-dz" onclick="document.getElementById('doc-file').click()">
+     <div style="font-size:28px;margin-bottom:6px">📎</div>
+     <div>Cliquer ou glisser un fichier ici</div>
+     <div id="doc-fn" style="color:var(--primary);font-weight:700;margin-top:6px;font-size:11px"></div>
+    </div>
+    <input type="file" id="doc-file" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="Documents.fileSelected(this)">
+   </div>
+  </div>
+  <div class="modal-footer">
+   <button class="btn btn-secondary" onclick="UI.close('m-doc')">Annuler</button>
+   <button class="btn btn-primary" onclick="Documents.save()">💾 Enregistrer</button>
+  </div>
+ </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div class="modal-overlay" id="m-import">
+ <div class="modal modal-sm">
+  <div class="modal-header warning"><div class="modal-title">⬆️ Importer depuis Excel</div><button class="modal-close" onclick="UI.close('m-import')">×</button></div>
+  <div class="modal-body">
+   <div class="alert alert-info">ℹ️ Utilisez le format de l'export GRH. Les colonnes doivent correspondre exactement. Le matricule est la clé de correspondance pour les agents.</div>
+   <div class="form-group"><label class="form-label">Données à importer</label>
+    <div style="display:flex;flex-direction:column;gap:6px;font-size:12px">
+     <label><input type="checkbox" id="imp-p" checked> Personnel</label>
+     <label><input type="checkbox" id="imp-c" checked> Congés</label>
+     <label><input type="checkbox" id="imp-pm" checked> Permissions</label>
+     <label><input type="checkbox" id="imp-ab" checked> Absences</label>
+    </div>
+   </div>
+   <div class="form-group"><label class="form-label">Mode d'import</label>
+    <select class="form-control" id="imp-mode"><option value="merge">Fusionner (ajouter sans écraser)</option><option value="replace">Remplacer tout</option></select>
+   </div>
+   <div class="drop-zone" id="imp-dz" onclick="document.getElementById('imp-file').click()" style="margin-bottom:0">
+    <div style="font-size:32px;margin-bottom:6px">📊</div>
+    <div>Cliquer ou glisser le fichier Excel ici</div>
+    <div style="font-size:11px;color:var(--gray-m);margin-top:4px">.xlsx ou .xls</div>
+    <div id="imp-fn" style="color:var(--primary);font-weight:700;margin-top:6px;font-size:12px"></div>
+   </div>
+   <input type="file" id="imp-file" accept=".xlsx,.xls" style="display:none" onchange="Excel.fileSelected(this)">
+   <div id="imp-preview" style="display:none;margin-top:12px;font-size:11px;background:var(--primary-p);padding:10px;border-radius:6px"></div>
+  </div>
+  <div class="modal-footer">
+   <button class="btn btn-secondary" onclick="UI.close('m-import')">Annuler</button>
+   <button class="btn btn-warning" id="btn-imp" onclick="Excel.doImport()" disabled>⬆️ Lancer l'import</button>
+  </div>
+ </div>
+</div>
+
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="m-confirm">
+ <div class="modal modal-sm">
+  <div class="modal-header danger"><div class="modal-title" id="m-conf-title">Confirmation</div><button class="modal-close" onclick="UI.close('m-confirm')">×</button></div>
+  <div class="modal-body"><p id="m-conf-msg" style="font-size:13px;line-height:1.6"></p></div>
+  <div class="modal-footer">
+   <button class="btn btn-secondary" onclick="UI.close('m-confirm')">Annuler</button>
+   <button class="btn btn-danger" id="m-conf-ok">Confirmer</button>
+  </div>
+ </div>
+</div>
+
+<!-- SheetJS for Excel -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+
+// ═══════ CONSTANTS ═══════
+const DROITS=[
+  {t:'Fonctionnaire',de:0,a:99,j:30,cum:60,base:'Art.196 Statut GFP'},
+  {t:'Contractuel',de:0,a:99,j:30,cum:60,base:'Art.196 Statut GFP'},
+  {t:'Stagiaire',de:0,a:99,j:0,cum:0,base:'Pas de congé légal'},
+  //{t:'Vacataire',de:0,a:99,j:0,cum:0,base:'Pas de congé légal'},
+];
+const PERMS_LEGALES={
+  "Mariage de l'agent":{j:5,just:'Acte de mariage'},
+  "Mariage d'un enfant":{j:3,just:'Fiche de permission'},
+  'Décès conjoint / enfant':{j:8,just:'Acte de décès/Faire-part'},
+  'Décès père / mère':{j:8,just:'Acte de décès/Faire-part'},
+  'Décès frère / sœur':{j:8,just:'Acte de décès/Faire-part'},
+  'Naissance enfant (père)':{j:3,just:'Déclaration naissance'},
+  'Déménagement':{j:0,just:'Justificatif domicile'},
+  'Maladie grave conjoint/enfant':{j:0,just:'Certificat médical'},
+  'Examen universitaire':{j:0,just:'Convocation examen'},
+  'Mission officielle':{j:0,just:'Ordre de mission'},
+  'Formation professionnelle':{j:0,just:'Convocation formation'},
+  'Congé maternité':{j:98,just:'Certificat médical grossesse'},
+  'Congé paternité':{j:3,just:'Acte de naissance'},
+  'Congé maladie de courte durée':{j:90,just:'Certificat médical'},
+  'Congé de convalence':{j:90,just:'Certificat médical'},
+  'Congé pour affaire personnel':{j:90,just:'Fiche de permission'},
+  'Congé maladie de longue durée':{j:1825,just:'Décission commission médicale'},
+};
+
+// ═══════ CONFIG SUPABASE ═══════
+// ⚠️ Remplacez ces deux valeurs par celles de votre projet Supabase
+// Supabase Dashboard → Settings → API
+const SUPA_URL = 'https://zwzxydatyvmdnmsuhtft.supabase.co';      // ex: https://xxxx.supabase.co
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp3enh5ZGF0eXZtZG5tc3VodGZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyODg4NjIsImV4cCI6MjA5Nzg2NDg2Mn0.8orgeXW56zw7UXZHyoHbWmFGZ-zKKndztb3zNLkTlTI'; // clé anon/public
+
+const _supa = supabase.createClient(SUPA_URL, SUPA_KEY);
+
+// ═══════ AUTH ═══════
+const Auth={
+  user:null,
+  profile:null,
+
+  async login(){
+    const email=document.getElementById('login-email').value.trim();
+    const pwd=document.getElementById('login-pwd').value;
+    const err=document.getElementById('login-error');
+    const btn=document.getElementById('login-btn');
+    if(!email||!pwd){err.textContent='Veuillez saisir votre email et mot de passe.';err.style.display='block';return;}
+    btn.textContent='Connexion...';btn.disabled=true;err.style.display='none';
+    const{data,error}=await _supa.auth.signInWithPassword({email,password:pwd});
+    btn.textContent='Se connecter';btn.disabled=false;
+    if(error){err.textContent=error.message==='Invalid login credentials'?'Email ou mot de passe incorrect.':error.message;err.style.display='block';return;}
+    await Auth._onLogin(data.user);
+  },
+
+  async logout(){
+    await _supa.auth.signOut();
+    Auth.user=null;Auth.profile=null;
+    document.getElementById('app').style.display='none';
+    document.getElementById('login-screen').style.display='flex';
+    document.getElementById('login-email').value='';
+    document.getElementById('login-pwd').value='';
+    document.getElementById('login-error').style.display='none';
+  },
+
+  async resetPwd(){
+    const email=prompt('Entrez votre adresse email :');
+    if(!email)return;
+    const{error}=await _supa.auth.resetPasswordForEmail(email,{redirectTo:window.location.origin});
+    if(error)alert('Erreur : '+error.message);
+    else alert('Un lien de réinitialisation a été envoyé à '+email);
+  },
+
+  async _onLogin(user){
+    Auth.user=user;
+    // Load profile
+    const{data:prof}=await _supa.from('profiles').select('*').eq('id',user.id).single();
+    Auth.profile=prof||{role:'gestionnaire',nom:user.email};
+    // Hide login, show app
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='flex';
+    // Show user badge
+    const roleLabel={admin:'👑 Admin',gestionnaire:'✏️ Gestionnaire',chef_service:'👁 Chef de service'};
+    document.getElementById('user-badge').textContent=`${prof?.nom||user.email} · ${roleLabel[prof?.role]||prof?.role}`;
+    // Restrict nav for chef_service
+    if(prof?.role==='chef_service'){
+      document.querySelectorAll('[data-page="parametres"]').forEach(el=>el.style.display='none');
+    }
+    // Load Params (droits/perms from DB) then dashboard
+    await Params.loadFromDB();
+    Params._refreshContratFilter();
+    UI.showPage('dashboard');
+    UI.loading(false);
+  },
+
+  canWrite(){return['admin','gestionnaire'].includes(Auth.profile?.role);},
+  isAdmin(){return Auth.profile?.role==='admin';},
+};
+
+// ═══════ DB (Supabase wrapper) ═══════
+// Mapping : store name → Supabase table + field name conventions
+const _TBL={
+  agents:'agents',
+  conges:'conges',
+  permissions:'permissions',
+  absences:'absences',
+  documents:'documents',
+};
+
+// Converts camelCase JS object → snake_case Supabase column names
+function _toSupa(store,obj){
+  if(store==='agents') return{
+    matricule:obj.matricule,nom:obj.nom,prenom:obj.prenom,
+    date_naissance:obj.dateNaissance||null,
+    lieu_naissance:obj.lieuNaissance||null,
+    sexe:obj.sexe||null,
+    situation_matrimoniale:obj.situationMatrimoniale||null,
+    nb_enfants:obj.nbEnfants||0,
+    direction:obj.direction||null,poste:obj.poste||null,
+    corps:obj.corps||null,categorie:obj.categorie||null,echelon:obj.echelon||null,
+    lieu_affectation:obj.lieuAffectation||'Lomé',
+    type_contrat:obj.typeContrat||null,
+    date_prise_service:obj.datePriseService||null,
+    date_fin_contrat:obj.dateFinContrat||null,
+    statut:obj.statut||'En activité',
+    cni:obj.cni||null,tel:obj.tel||null,email:obj.email||null,
+    diplome:obj.diplome||null,specialite:obj.specialite||null,
+    observations:obj.observations||null,
+  };
+  if(store==='conges') return{
+    agent_id:obj.agentId,type_conge:obj.typeConge||null,
+    date_depart:obj.dateDepart||null,
+    date_retour_prevu:obj.dateRetourPrevu||null,
+    date_reprise_effective:obj.dateRepriseEffective||null,
+    interimaire:obj.interimaire||null,
+    jours_demandes:obj.joursDemandes||0,
+    jours_accordes:obj.joursAccordes||0,
+    statut:obj.statut||'En attente',
+    visa_responsable:obj.visaResponsable||null,
+    observations:obj.observations||null,
+  };
+  if(store==='permissions') return{
+    agent_id:obj.agentId,motif:obj.motif||null,
+    date_debut:obj.dateDebut||null,date_fin:obj.dateFin||null,
+    jours_accordes:obj.joursAccordes||0,
+    statut:obj.statut||'En attente',observations:obj.observations||null,
+  };
+  if(store==='absences') return{
+    agent_id:obj.agentId,type_absence:obj.typeAbsence||null,
+    date_absence:obj.dateAbsence||null,
+    heure_arrivee:obj.heureArrivee||null,
+    nb_jours:obj.nbJours||1,
+    statut:obj.statut||'En traitement',observations:obj.observations||null,
+  };
+  if(store==='documents') return{
+    agent_id:obj.agentId,type_doc:obj.typeDoc||null,
+    reference:obj.reference||null,date_doc:obj.dateDoc||null,
+    fichier_url:obj.fichierUrl||null,observations:obj.observations||null,
+  };
+  return obj;
+}
+
+// Converts snake_case Supabase row → camelCase JS object
+function _fromSupa(store,row){
+  if(!row)return null;
+  if(store==='agents') return{
+    id:row.id,matricule:row.matricule,nom:row.nom,prenom:row.prenom,
+    dateNaissance:row.date_naissance,lieuNaissance:row.lieu_naissance,
+    sexe:row.sexe,situationMatrimoniale:row.situation_matrimoniale,
+    nbEnfants:row.nb_enfants,direction:row.direction,poste:row.poste,
+    corps:row.corps,categorie:row.categorie,echelon:row.echelon,
+    lieuAffectation:row.lieu_affectation,typeContrat:row.type_contrat,
+    datePriseService:row.date_prise_service,dateFinContrat:row.date_fin_contrat,
+    statut:row.statut,cni:row.cni,tel:row.tel,email:row.email,
+    diplome:row.diplome,specialite:row.specialite,observations:row.observations,
+  };
+  if(store==='conges') return{
+    id:row.id,agentId:row.agent_id,typeConge:row.type_conge,
+    dateDepart:row.date_depart,dateRetourPrevu:row.date_retour_prevu,
+    dateRepriseEffective:row.date_reprise_effective,
+    interimaire:row.interimaire,joursDemandes:row.jours_demandes,
+    joursAccordes:row.jours_accordes,statut:row.statut,
+    visaResponsable:row.visa_responsable,observations:row.observations,
+  };
+  if(store==='permissions') return{
+    id:row.id,agentId:row.agent_id,motif:row.motif,
+    dateDebut:row.date_debut,dateFin:row.date_fin,
+    joursAccordes:row.jours_accordes,statut:row.statut,observations:row.observations,
+  };
+  if(store==='absences') return{
+    id:row.id,agentId:row.agent_id,typeAbsence:row.type_absence,
+    dateAbsence:row.date_absence,heureArrivee:row.heure_arrivee,
+    nbJours:row.nb_jours,statut:row.statut,observations:row.observations,
+  };
+  if(store==='documents') return{
+    id:row.id,agentId:row.agent_id,typeDoc:row.type_doc,
+    reference:row.reference,dateDoc:row.date_doc,
+    fichierUrl:row.fichier_url,observations:row.observations,
+  };
+  return row;
+}
+
+const DB={
+  // ── agents filter for chef_service ───────────────────────────
+  _agentFilter(q){
+    if(Auth.profile?.role==='chef_service'&&Auth.profile?.direction){
+      return q.eq('direction',Auth.profile.direction);
+    }
+    return q;
+  },
+
+  async add(store,data){
+    const payload=_toSupa(store,data);
+    const{data:row,error}=await _supa.from(_TBL[store]).insert(payload).select().single();
+    if(error)throw error;
+    return _fromSupa(store,row);
+  },
+
+  async get(store,id){
+    const{data:row,error}=await _supa.from(_TBL[store]).select('*').eq('id',id).single();
+    if(error)return null;
+    return _fromSupa(store,row);
+  },
+
+  async getAll(store){
+    let q=_supa.from(_TBL[store]).select('*').order('id',{ascending:true});
+    if(store==='agents')q=this._agentFilter(q);
+    const{data,error}=await q;
+    if(error)throw error;
+    return(data||[]).map(r=>_fromSupa(store,r));
+  },
+
+  async byIdx(store,field,val){
+    // field is camelCase, convert to snake_case
+    const colMap={agentId:'agent_id',typeConge:'type_conge',statut:'statut',typeAbsence:'type_absence'};
+    const col=colMap[field]||field;
+    let q=_supa.from(_TBL[store]).select('*').eq(col,val);
+    const{data,error}=await q;
+    if(error)throw error;
+    return(data||[]).map(r=>_fromSupa(store,r));
+  },
+
+  async put(store,data){
+    const{id,...rest}=data;
+    const payload=_toSupa(store,rest);
+    const{data:row,error}=await _supa.from(_TBL[store]).update(payload).eq('id',id).select().single();
+    if(error)throw error;
+    return _fromSupa(store,row);
+  },
+
+  async del(store,id){
+    const{error}=await _supa.from(_TBL[store]).delete().eq('id',id);
+    if(error)throw error;
+  },
+
+  async clear(store){
+    // Only admin can clear — delete all rows
+    const{error}=await _supa.from(_TBL[store]).delete().neq('id',0);
+    if(error)throw error;
+  },
+
+  async prm(k,def=''){
+    try{
+      const{data,error}=await _supa.from('parametres').select('v').eq('k',k).single();
+      if(error||!data)return def;
+      return data.v??def;
+    }catch{return def;}
+  },
+
+  async setPrm(k,v){
+    await _supa.from('parametres').upsert({k,v,updated_at:new Date().toISOString()},{onConflict:'k'});
+  }
+};
+
+// ═══════ HELPERS ═══════
+const H={
+  // Parse date from various formats including Excel serial numbers
+  parseDate(v){
+    if(!v)return'';
+    // Already ISO/string date
+    if(typeof v==='string'){
+      // dd/mm/yyyy
+      if(/^\d{2}\/\d{2}\/\d{4}$/.test(v)){const[d,mo,y]=v.split('/');return`${y}-${mo}-${d}`;}
+      // dd-mm-yyyy
+      if(/^\d{2}-\d{2}-\d{4}$/.test(v)){const[d,mo,y]=v.split('-');return`${y}-${mo}-${d}`;}
+      // yyyy/mm/dd
+      if(/^\d{4}\/\d{2}\/\d{2}$/.test(v)){return v.replace(/\//g,'-');}
+      // Already ISO or other string date
+      const td=new Date(v);if(!isNaN(td))return td.toISOString().slice(0,10);
+      return v;
+    }
+    // Excel serial number
+    if(typeof v==='number'&&v>1000){
+      const d=new Date(Math.round((v-25569)*86400*1000));
+      if(!isNaN(d))return d.toISOString().slice(0,10);
+    }
+    return String(v);
+  },
+  fdate(s){if(!s)return'';const d=new Date(s);return isNaN(d)?s:d.toLocaleDateString('fr-FR');},
+  anc(s){if(!s)return 0;return Math.floor((Date.now()-new Date(s))/(365.25*864e5));},
+  age(s){if(!s)return'';return Math.floor((Date.now()-new Date(s))/(365.25*864e5))+' ans';},
+  // Compute retirement date: earliest of 60 years old OR 30 years of service
+  retraite(ddn,dps){
+    const r={date:'',motif:''};
+    if(ddn){const d=new Date(ddn);d.setFullYear(d.getFullYear()+60);r.age=d;}
+    if(dps){const d=new Date(dps);d.setFullYear(d.getFullYear()+30);r.anc=d;}
+    if(r.age&&r.anc){
+      if(r.anc<=r.age){r.date=r.anc.toISOString().slice(0,10);r.motif='-';}
+      else{r.date=r.age.toISOString().slice(0,10);r.motif='-';}
+    }else if(r.age){r.date=r.age.toISOString().slice(0,10);r.motif='-';}
+    else if(r.anc){r.date=r.anc.toISOString().slice(0,10);r.motif='-';}
+    return r;
+  },
+  // Validate helpers
+  validTel(v){return!v||/^\d{6,15}$/.test(v.replace(/\s/g,''));},
+  validEmail(v){return!v||/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);},
+  validAgeMini(ddn,min=18){if(!ddn)return true;return H.anc(ddn)>=min;},
+  validDpsNotFuture(dps){if(!dps)return true;return new Date(dps)<=new Date();},
+  droits(type,anc){
+    const r=DROITS.find(d=>d.t===type&&anc>=d.de&&anc<=d.a);
+    return r||{j:0,cum:0,base:''};
+  },
+  permJ(motif){return PERMS_LEGALES[motif]||{j:0,just:''};},
+  workdays(d1,d2){
+    if(!d1||!d2)return 0;
+    let s=new Date(d1),e=new Date(d2),n=0;
+    const c=new Date(s);
+    while(c<=e){const d=c.getDay();if(d&&d!==6)n++;c.setDate(c.getDate()+1);}
+    return n;
+  },
+  sanction(n){
+    /**if(n>=15)return'Conseil de discipline';
+    if(n>=10)return'Avert. écrit';
+    if(n>=5)return'Avertissement écrit';**/
+    return'Demande d\'explication';
+  },
+  badge(s){
+    const m={'En attente':'bg-warning','Approuvé':'bg-success','En cours':'bg-info',
+      'Soldé':'bg-gray','Refusé':'bg-danger','Annulé':'bg-gray',
+      'En activité':'bg-success','Suspendu':'bg-danger','Retraité':'bg-gray',
+      'En congé':'bg-info','En mission':'bg-purple','Décédé':'bg-gray',
+      'Sanctionné':'bg-danger','En traitement':'bg-warning','Classé':'bg-gray'};
+    return`<span class="badge ${m[s]||'bg-gray'}">${s||''}</span>`;
+  },
+  fn(a){return a?`${a.nom||''} ${a.prenom||''}`.trim():'';},
+  esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');},
+  ref(pre,id,yr){return`${String(id).padStart(4,'0')}-${pre}/${yr||new Date().getFullYear()}`;}
+};
+
+// ═══════ UI ═══════
+const UI={
+  page:'dashboard',
+  _ags:[],
+  _atab:0,
+
+  showPage(p){
+    document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+    const el=document.getElementById(`page-${p}`);if(el)el.classList.add('active');
+    const nav=document.querySelector(`.nav-item[data-page="${p}"]`);if(nav)nav.classList.add('active');
+    this.page=p;
+    const titles={dashboard:'Tableau de bord',personnel:'Registre du Personnel',conges:'Gestion des Congés',
+      permissions:'Permissions & Autorisations',absences:'Absences & Retards',soldes:'Soldes & Cumuls',
+      documents:'Documents de Vérification',rapports:'États & Rapports',parametres:'Paramètres'};
+    document.getElementById('page-title').textContent=titles[p]||p;
+    ({dashboard:Dashboard,personnel:Personnel,conges:Conges,permissions:Permissions,
+      absences:Absences,soldes:Soldes,documents:Documents,rapports:Rapports,parametres:Params})[p]?.load?.();
+  },
+
+  open(id){document.getElementById(id).classList.add('open');},
+  close(id){document.getElementById(id).classList.remove('open');},
+
+  toast(msg,type='success'){
+    const c=document.getElementById('toast-container');
+    const t=document.createElement('div');
+    t.className=`toast toast-${type}`;t.textContent=msg;
+    c.appendChild(t);setTimeout(()=>t.remove(),3600);
+  },
+
+  loading(on){document.getElementById('loading').classList.toggle('active',on);},
+
+  confirm(title,msg,cb){
+    document.getElementById('m-conf-title').textContent=title;
+    document.getElementById('m-conf-msg').textContent=msg;
+    const btn=document.getElementById('m-conf-ok');
+    btn.onclick=()=>{this.close('m-confirm');cb();};
+    this.open('m-confirm');
+  },
+
+  async acSearch(input,hidId,dispId){
+    const v=input.value.toLowerCase();
+    const acId=input.nextElementSibling?.id;
+    const acEl=acId?document.getElementById(acId):null;
+    if(!v||v.length<2){if(acEl)acEl.innerHTML='';return;}
+    if(!this._ags.length)this._ags=await DB.getAll('agents');
+    const m=this._ags.filter(a=>H.fn(a).toLowerCase().includes(v)||(a.matricule||'').toLowerCase().includes(v)).slice(0,7);
+    if(acEl)acEl.innerHTML=m.map(a=>`<div class="autocomplete-item" onclick="UI.selAgent(${a.id},'${H.esc(H.fn(a))}','${H.esc(a.matricule)}','${hidId}','${dispId}','${input.id}')">${H.esc(a.matricule)} — <strong>${H.esc(H.fn(a))}</strong> <small style="color:var(--gray-m)">${H.esc(a.direction||'')}</small></div>`).join('');
+  },
+
+  selAgent(id,name,mat,hidId,dispId,inpId){
+    document.getElementById(hidId).value=id;
+    document.getElementById(inpId).value=name;
+    document.getElementById(dispId).innerHTML=`<span class="badge bg-success" style="font-size:11px;margin-top:4px">✓ ${mat} — ${name}</span>`;
+    const par=document.getElementById(inpId).nextElementSibling;
+    if(par&&par.classList.contains('autocomplete-list'))par.innerHTML='';
+  },
+
+  pages(cid,total,cur,pp,fn){
+    const el=document.getElementById(cid);if(!el)return;
+    const n=Math.ceil(total/pp);if(n<=1){el.innerHTML='';return;}
+    el.innerHTML=Array.from({length:n},(_,i)=>`<button class="pg-btn${i+1===cur?' active':''}" onclick="(${fn})(${i+1})">${i+1}</button>`).join('');
+  }
+};
+
+// ═══════ PERSONNEL ═══════
+const Personnel={
+  _d:[],_f:[],_p:1,_pp:18,
+
+  async load(){
+    UI.loading(true);
+    this._d=await DB.getAll('agents');
+    this._f=[...this._d];
+    // update datalist for agent form
+    const dirs=[...new Set(this._d.map(a=>a.direction).filter(Boolean))].sort();
+    const dl=document.getElementById('dirs-dl');
+    if(dl)dl.innerHTML=dirs.map(d=>`<option value="${H.esc(d)}">`).join('');
+    // update direction filter dropdown
+    const fd=document.getElementById('p-f-dir');
+    if(fd){const cur=fd.value;fd.innerHTML='<option value="">Toutes directions</option>'+dirs.map(d=>`<option value="${H.esc(d)}"${d===cur?' selected':''}>${H.esc(d)}</option>`).join('');}
+    this.filter();
+    UI.loading(false);
+  },
+
+  render(){
+    const tb=document.getElementById('p-tbody');if(!tb)return;
+    const s=(this._p-1)*this._pp;
+    const pg=this._f.slice(s,s+this._pp);
+    if(!pg.length){
+      tb.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--gray-m)">Aucun agent. Cliquez sur <strong>+ Nouvel Agent</strong></td></tr>`;
+      return;
+    }
+    tb.innerHTML=pg.map(a=>{
+      const anc=H.anc(a.datePriseService);
+      const ret=H.retraite(a.dateNaissance,a.datePriseService);
+      const cb=a.typeContrat==='Fonctionnaire'?'bg-success':a.typeContrat==='Contractuel'?'bg-info':'bg-gray';
+      // Check if retirement within 2 years
+      const retSoon=ret.date&&(new Date(ret.date)-Date.now())<2*365.25*864e5&&(new Date(ret.date)-Date.now())>0;
+      return`<tr>
+        <td><strong>${H.esc(a.matricule)}</strong></td>
+        <td>${H.esc(H.fn(a))}</td>
+        <td>${a.sexe==='Féminin'?'♀️':'♂️'} ${a.sexe||''}</td>
+        <td style="max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${H.esc(a.direction||'')}</td>
+        <td>${H.esc(a.poste||'')}</td>
+        <td><span class="badge ${cb}">${a.typeContrat||''}</span></td>
+        <td>${a.categorie||'-'}</td>
+        <td>${anc}a</td>
+        <td style="font-size:11px;white-space:nowrap;color:${retSoon?'var(--warning)':'inherit'}">${ret.date?H.fdate(ret.date):'-'}${retSoon?' ⚠️':''}</td>
+        <td>${H.badge(a.statut)}</td>
+        <td class="actions">
+          <button class="btn btn-secondary btn-xs" onclick="Personnel.edit(${a.id})" title="Modifier">✏️</button>
+          <button class="btn btn-info btn-xs" onclick="Print.ficheAgent(${a.id})" title="Imprimer fiche">🖨️</button>
+          <button class="btn btn-danger btn-xs" onclick="Personnel.del(${a.id})" title="Supprimer">🗑️</button>
+        </td>
+      </tr>`;
+    }).join('');
+    UI.pages('p-pages',this._f.length,this._p,this._pp,`p=>{Personnel._p=p;Personnel.render()}`);
+  },
+
+  search(v){
+    const q=v.toLowerCase();
+    this._f=this._d.filter(a=>H.fn(a).toLowerCase().includes(q)||(a.matricule||'').toLowerCase().includes(q)||(a.direction||'').toLowerCase().includes(q));
+    this._p=1;this.applyF();
+  },
+  filter(){
+    const fc=document.getElementById('p-f-contrat')?.value||'';
+    const fs=document.getElementById('p-f-statut')?.value||'';
+    const fd=document.getElementById('p-f-dir')?.value||'';
+    const sort=document.getElementById('p-sort')?.value||'matricule';
+    const q=(document.getElementById('p-search')?.value||'').toLowerCase();
+    const dps1=document.getElementById('p-f-dps1')?.value||'';
+    const dps2=document.getElementById('p-f-dps2')?.value||'';
+    this._f=this._d.filter(a=>{
+      const mq=!q||H.fn(a).toLowerCase().includes(q)||(a.matricule||'').toLowerCase().includes(q)||(a.direction||'').toLowerCase().includes(q);
+      const mc=!fc||a.typeContrat===fc;
+      const mst=!fs||a.statut===fs;
+      const mdir=!fd||a.direction===fd;
+      const mdps1=!dps1||a.datePriseService>=dps1;
+      const mdps2=!dps2||a.datePriseService<=dps2;
+      return mq&&mc&&mst&&mdir&&mdps1&&mdps2;
+    });
+    // Apply sort
+    if(sort==='matricule')this._f.sort((a,b)=>(a.matricule||'').localeCompare(b.matricule||'',undefined,{numeric:true}));
+    else if(sort==='direction')this._f.sort((a,b)=>(a.direction||'').localeCompare(b.direction||''));
+    else if(sort==='nom')this._f.sort((a,b)=>H.fn(a).localeCompare(H.fn(b)));
+    else if(sort==='anciennete')this._f.sort((a,b)=>H.anc(b.datePriseService)-H.anc(a.datePriseService));
+    else if(sort==='retraite')this._f.sort((a,b)=>{const ra=H.retraite(a.dateNaissance,a.datePriseService).date||'9999';const rb=H.retraite(b.dateNaissance,b.datePriseService).date||'9999';return ra.localeCompare(rb);});
+    this._p=1;
+    // Update count badge
+    const cnt=document.getElementById('p-count');
+    if(cnt)cnt.textContent=this._f.length<this._d.length?`${this._f.length} / ${this._d.length} agents`:this._d.length+' agents';
+    this.render();
+  },
+  clearFilters(){
+    ['p-search','p-f-dps1','p-f-dps2'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+    ['p-f-contrat','p-f-dir','p-f-statut','p-sort'].forEach(id=>{const e=document.getElementById(id);if(e)e.selectedIndex=0;});
+    this.filter();
+  },
+  applyF(){this.filter();},
+
+  validateDdn(el){
+    if(el.value&&!H.validAgeMini(el.value,18)){
+      el.style.borderColor='var(--danger)';
+      el.title='⚠️ L\'agent doit avoir au moins 18 ans';
+      el.setCustomValidity('L\'agent doit avoir au moins 18 ans');
+    }else{el.style.borderColor='';el.title='';el.setCustomValidity('');}
+  },
+  validateDps(el){
+    if(el.value&&!H.validDpsNotFuture(el.value)){
+      el.style.borderColor='var(--danger)';
+      el.title='⚠️ La date de prise de service ne peut pas être postérieure à aujourd\'hui';
+      el.setCustomValidity('Date invalide');
+    }else{el.style.borderColor='';el.title='';el.setCustomValidity('');}
+  },
+
+  refreshContratSelect(currentVal){
+    const sel=document.getElementById('a-contrat');if(!sel)return;
+    const types=[...new Set(DROITS.map(d=>d.t))];
+    const prev=currentVal!==undefined?currentVal:sel.value;
+    sel.innerHTML='<option value="">--</option>'+types.map(t=>`<option value="${H.esc(t)}"${t===prev?' selected':''}>${H.esc(t)}</option>`).join('');
+  },
+
+  showAdd(){
+    document.getElementById('m-agent-title').textContent='➕ Nouvel Agent';
+    document.getElementById('a-id').value='';
+    const flds=['a-mat','a-nom','a-prenom','a-lieu-n','a-corps','a-echelon','a-dir','a-poste','a-lieu-a','a-cni','a-tel','a-email','a-banque','a-diplome','a-specialite','a-obs','a-ddn','a-dps','a-dfc'];
+    flds.forEach(f=>{const e=document.getElementById(f);if(e)e.value='';});
+    ['a-sexe','a-matri','a-contrat','a-cat'].forEach(f=>{const e=document.getElementById(f);if(e)e.value='';});
+    document.getElementById('a-statut').value='En activité';
+    document.getElementById('a-enfants').value='0';
+    document.getElementById('a-lieu-a').value='Lomé';
+    document.getElementById('a-droits-info').style.display='none';
+    this.refreshContratSelect('');
+    this._tab(0);
+    UI.open('m-agent');
+  },
+
+  async edit(id){
+    const a=await DB.get('agents',id);if(!a)return;
+    document.getElementById('m-agent-title').textContent='✏️ Modifier Agent';
+    document.getElementById('a-id').value=id;
+    const map={
+      'a-mat':'matricule','a-nom':'nom','a-prenom':'prenom','a-ddn':'dateNaissance',
+      'a-lieu-n':'lieuNaissance','a-sexe':'sexe','a-matri':'situationMatrimoniale',
+      'a-enfants':'nbEnfants','a-cni':'cni','a-tel':'tel','a-email':'email',
+      'a-contrat':'typeContrat','a-cat':'categorie','a-corps':'corps','a-echelon':'echelon',
+      'a-dir':'direction','a-poste':'poste','a-lieu-a':'lieuAffectation','a-statut':'statut',
+      'a-dps':'datePriseService','a-dfc':'dateFinContrat',
+      'a-banque':'banque','a-diplome':'diplome','a-specialite':'specialite','a-nomi':'nominations','a-obs':'observations'
+    };
+    for(const[eid,fld]of Object.entries(map)){
+      const el=document.getElementById(eid);if(el)el.value=a[fld]??'';
+    }
+    this.refreshContratSelect(a.typeContrat||'');
+    this.updContrat();
+    this._tab(0);
+    UI.open('m-agent');
+  },
+
+  _tab(n){
+    UI._atab=n;
+    [0,1,2].forEach(i=>{
+      const el=document.getElementById(`at-${i}`);
+      if(el)el.style.display=i===n?'block':'none';
+    });
+    document.querySelectorAll('#a-tabs .tab').forEach((t,i)=>t.classList.toggle('active',i===n));
+  },
+  nextTab(){if(UI._atab<2)this._tab(UI._atab+1);},
+  prevTab(){if(UI._atab>0)this._tab(UI._atab-1);},
+
+  updContrat(){
+    const type=document.getElementById('a-contrat').value;
+    const dps=document.getElementById('a-dps').value;
+    if(type&&dps){
+      const anc=H.anc(dps);
+      const d=H.droits(type,anc);
+      document.getElementById('a-droits-info').style.display='block';
+      document.getElementById('a-droits-info').innerHTML=`📊 Ancienneté: <strong>${anc} ans</strong> | Droits: <strong>${d.j} j/an</strong> | Cumul max: <strong>${d.cum} j</strong> | <em>${d.base}</em>`;
+    }
+  },
+
+  async save(){
+    const mat=document.getElementById('a-mat').value.trim();
+    const nom=document.getElementById('a-nom').value.trim();
+    const prn=document.getElementById('a-prenom').value.trim();
+    const typ=document.getElementById('a-contrat').value;
+    const dps=document.getElementById('a-dps').value;
+    const dir=document.getElementById('a-dir').value.trim();
+    const pst=document.getElementById('a-poste').value.trim();
+    const ddn=document.getElementById('a-ddn').value;
+    const tel=document.getElementById('a-tel').value.trim();
+    const email=document.getElementById('a-email').value.trim();
+    if(!mat||!nom||!prn||!typ||!dps||!dir||!pst){
+      UI.toast('Champs obligatoires manquants (*)','error');return;
+    }
+    if(ddn&&!H.validAgeMini(ddn,18)){UI.toast('Date de naissance : l\'agent doit avoir au moins 18 ans','error');return;}
+    if(!H.validDpsNotFuture(dps)){UI.toast('Date de prise de service ne peut pas être postérieure à aujourd\'hui','error');return;}
+    if(!H.validTel(tel)){UI.toast('Le numéro de téléphone doit être numérique','error');return;}
+    if(!H.validEmail(email)){UI.toast('Adresse email invalide','error');return;}
+    const data={matricule:mat,nom,prenom:prn,typeContrat:typ,datePriseService:dps,direction:dir,poste:pst,
+      dateNaissance:ddn,
+      lieuNaissance:document.getElementById('a-lieu-n').value,
+      sexe:document.getElementById('a-sexe').value,
+      situationMatrimoniale:document.getElementById('a-matri').value,
+      nbEnfants:parseInt(document.getElementById('a-enfants').value)||0,
+      categorie:document.getElementById('a-cat').value,
+      corps:document.getElementById('a-corps').value,
+      echelon:document.getElementById('a-echelon').value,
+      lieuAffectation:document.getElementById('a-lieu-a').value||'Lomé',
+      statut:document.getElementById('a-statut').value,
+      dateFinContrat:document.getElementById('a-dfc').value,
+      cni:document.getElementById('a-cni').value,
+      tel:document.getElementById('a-tel').value,
+      email:document.getElementById('a-email').value,
+      banque:document.getElementById('a-banque').value,
+      diplome:document.getElementById('a-diplome').value,
+      specialite:document.getElementById('a-specialite').value,
+      nominations:document.getElementById('a-nomi').value,
+      observations:document.getElementById('a-obs').value,
+      dateCreation:new Date().toISOString()
+    };
+    const id=document.getElementById('a-id').value;
+    try{
+      if(id){data.id=parseInt(id);await DB.put('agents',data);UI.toast('Agent mis à jour');}
+      else{await DB.add('agents',data);UI.toast('Agent enregistré');}
+      UI.close('m-agent');UI._ags=[];this.load();
+    }catch(e){
+      if(e.name==='ConstraintError')UI.toast('Matricule déjà existant','error');
+      else UI.toast('Erreur: '+e.message,'error');
+    }
+  },
+
+  del(id){
+    UI.confirm('Supprimer l\'agent','Cette action est irréversible. Continuer ?',async()=>{
+      await DB.del('agents',id);UI._ags=[];UI.toast('Agent supprimé');this.load();
+    });
+  }
+};
+
+// ═══════ CONGES ═══════
+const Conges={
+  _d:[],_ags:{},_f:[],_p:1,_pp:18,
+
+  async load(){
+    UI.loading(true);
+    [this._d]=await Promise.all([DB.getAll('conges')]);
+    const ags=await DB.getAll('agents');
+    this._ags=Object.fromEntries(ags.map(a=>[a.id,a]));
+    this._f=[...this._d];this.render();
+    UI.loading(false);
+  },
+
+  render(){
+    const tb=document.getElementById('c-tbody');if(!tb)return;
+    const s=(this._p-1)*this._pp;
+    const pg=this._f.slice(s,s+this._pp);
+    if(!pg.length){tb.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--gray-m)">Aucune demande de congé.</td></tr>`;return;}
+    tb.innerHTML=pg.map(c=>{
+      const a=this._ags[c.agentId];
+      const ref=H.ref('CGE',c.id,new Date(c.dateCreation||Date.now()).getFullYear());
+      return`<tr>
+        <td><small style="color:var(--gray-m)">${ref}</small></td>
+        <td><strong>${H.esc(H.fn(a))}</strong><br><small style="color:var(--gray-m)">${a?.matricule||''}</small></td>
+        <td>${H.esc(c.typeConge||'')}</td>
+        <td>${H.fdate(c.dateDepart)}</td>
+        <td>${H.fdate(c.dateRetourPrevu)}</td>
+        <td><strong>${c.joursAccordes||c.joursDemandes||0}j</strong></td>
+        <td>${H.badge(c.statut)}</td>
+        <td class="actions">
+          <button class="btn btn-secondary btn-xs" onclick="Conges.edit(${c.id})">✏️</button>
+          <button class="btn btn-info btn-xs" onclick="Print.demandeConge(${c.id})">🖨️</button>
+          <button class="btn btn-danger btn-xs" onclick="Conges.del(${c.id})">🗑️</button>
+        </td>
+      </tr>`;
+    }).join('');
+    UI.pages('c-pages',this._f.length,this._p,this._pp,`p=>{Conges._p=p;Conges.render()}`);
+  },
+
+  search(v){const q=v.toLowerCase();this._f=this._d.filter(c=>{const a=this._ags[c.agentId];return H.fn(a).toLowerCase().includes(q)||(a?.matricule||'').toLowerCase().includes(q)||(c.typeConge||'').toLowerCase().includes(q);});this._p=1;this.render();},
+  filter(){const fs=document.getElementById('c-f-statut')?.value||'';const ft=document.getElementById('c-f-type')?.value||'';const q=(document.getElementById('c-search')?.value||'').toLowerCase();this._f=this._d.filter(c=>{const a=this._ags[c.agentId];const mq=!q||H.fn(a).toLowerCase().includes(q);return mq&&(!fs||c.statut===fs)&&(!ft||c.typeConge===ft);});this._p=1;this.render();},
+
+  calcJ(){
+    const d1=document.getElementById('cg-dep').value,d2=document.getElementById('cg-ret').value;
+    if(d1&&d2){const n=H.workdays(d1,d2);document.getElementById('cg-jd').value=n;document.getElementById('cg-ja').value=n;}
+    this.updSolde();
+  },
+  updType(){this.calcJ();},
+
+  async updSolde(){
+    const aid=parseInt(document.getElementById('cg-ag-id').value);
+    const ja=parseInt(document.getElementById('cg-ja').value)||0;
+    if(!aid)return;
+    const a=await DB.get('agents',aid);if(!a)return;
+    const anc=H.anc(a.datePriseService);
+    const d=H.droits(a.typeContrat,anc);
+    const cgs=await DB.byIdx('conges','agentId',aid);
+    const pris=cgs.filter(c=>!['Refusé','Annulé'].includes(c.statut)).reduce((s,c)=>s+(parseInt(c.joursAccordes)||0),0);
+    const sol=d.j-pris;
+    const el=document.getElementById('cg-solde-info');
+    el.style.display='block';
+    const apr=sol-ja;
+    el.className=`alert ${apr<0?'alert-danger':apr<5?'alert-warn':'alert-info'}`;
+    el.innerHTML=`📊 Droits: <strong>${d.j}j/an</strong> | Déjà pris: <strong>${pris}j</strong> | Solde: <strong>${sol}j</strong> | Après ce congé: <strong style="color:${apr<0?'var(--danger)':'inherit'}">${apr}j</strong>`;
+  },
+
+  showAdd(){
+    document.getElementById('m-conge-title').textContent='➕ Nouvelle Demande de Congé';
+    document.getElementById('cg-id').value='';
+    ['cg-ag-id','cg-dep','cg-ret','cg-rep','cg-interi','cg-jd','cg-ja','cg-visa','cg-obs'].forEach(f=>{const e=document.getElementById(f);if(e)e.value='';});
+    document.getElementById('cg-ag-search').value='';
+    document.getElementById('cg-ag-disp').innerHTML='';
+    document.getElementById('cg-type').value='';
+    document.getElementById('cg-statut').value='En attente';
+    document.getElementById('cg-solde-info').style.display='none';
+    UI.open('m-conge');
+  },
+
+  async edit(id){
+    const c=await DB.get('conges',id);if(!c)return;
+    document.getElementById('m-conge-title').textContent='✏️ Modifier Congé';
+    document.getElementById('cg-id').value=id;
+    document.getElementById('cg-ag-id').value=c.agentId;
+    const a=await DB.get('agents',c.agentId);
+    if(a){document.getElementById('cg-ag-search').value=H.fn(a);document.getElementById('cg-ag-disp').innerHTML=`<span class="badge bg-success" style="font-size:11px;margin-top:4px">✓ ${a.matricule} — ${H.fn(a)}</span>`;}
+    document.getElementById('cg-type').value=c.typeConge||'';
+    document.getElementById('cg-dep').value=c.dateDepart||'';
+    document.getElementById('cg-ret').value=c.dateRetourPrevu||'';
+    document.getElementById('cg-rep').value=c.dateRepriseEffective||'';
+    document.getElementById('cg-interi').value=c.interimaire||'';
+    document.getElementById('cg-jd').value=c.joursDemandes||'';
+    document.getElementById('cg-ja').value=c.joursAccordes||'';
+    document.getElementById('cg-statut').value=c.statut||'En attente';
+    document.getElementById('cg-visa').value=c.visaResponsable||'';
+    document.getElementById('cg-obs').value=c.observations||'';
+    this.updSolde();
+    UI.open('m-conge');
+  },
+
+  async save(){
+    const aid=parseInt(document.getElementById('cg-ag-id').value);
+    const type=document.getElementById('cg-type').value;
+    const dep=document.getElementById('cg-dep').value;
+    const ret=document.getElementById('cg-ret').value;
+    if(!aid||!type||!dep||!ret){UI.toast('Champs obligatoires manquants','error');return;}
+    const statut=document.getElementById('cg-statut').value;
+    const rep=document.getElementById('cg-rep').value;
+    const data={agentId:aid,typeConge:type,dateDepart:dep,dateRetourPrevu:ret,
+      dateRepriseEffective:rep,
+      interimaire:document.getElementById('cg-interi').value,
+      joursDemandes:parseInt(document.getElementById('cg-jd').value)||0,
+      joursAccordes:parseInt(document.getElementById('cg-ja').value)||0,
+      statut:statut,
+      visaResponsable:document.getElementById('cg-visa').value,
+      observations:document.getElementById('cg-obs').value,
+      dateCreation:new Date().toISOString()
+    };
+    const id=document.getElementById('cg-id').value;
+    if(id){data.id=parseInt(id);await DB.put('conges',data);UI.toast('Congé mis à jour');}
+    else{await DB.add('conges',data);UI.toast('Demande enregistrée');}
+    // ── Mise à jour automatique du statut de l'agent ──────────────────────
+    const agent=await DB.get('agents',aid);
+    if(agent){
+      let newStatut=agent.statut;
+      if(['Approuvé','En cours'].includes(statut)&&!rep){
+        // Congé approuvé ou en cours sans date de reprise → agent En congé
+        newStatut='En congé';
+      } else if(statut==='Soldé'||(statut==='En cours'&&rep)){
+        // Soldé ou reprise effective renseignée → retour En activité
+        newStatut='En activité';
+      } else if(['Refusé','Annulé'].includes(statut)){
+        // Refusé ou annulé → restaurer En activité si l'agent était En congé
+        if(agent.statut==='En congé')newStatut='En activité';
+      }
+      if(newStatut!==agent.statut){
+        await DB.put('agents',{...agent,statut:newStatut});
+        UI._ags=[];
+        UI.toast(`Statut agent mis à jour → "${newStatut}"`,'warning');
+      }
+    }
+    // ──────────────────────────────────────────────────────────────────────
+    UI.close('m-conge');this.load();
+  },
+
+  del(id){UI.confirm('Supprimer','Supprimer cette demande de congé ?',async()=>{await DB.del('conges',id);UI.toast('Supprimé');this.load();});}
+};
+
+
+// ═══════ PERMISSIONS ═══════
+const Permissions={
+  _d:[],_ags:{},_f:[],_p:1,_pp:18,
+
+  async load(){
+    UI.loading(true);
+    this._d=await DB.getAll('permissions');
+    const ags=await DB.getAll('agents');
+    this._ags=Object.fromEntries(ags.map(a=>[a.id,a]));
+    this._f=[...this._d];this.render();UI.loading(false);
+  },
+
+  render(){
+    const tb=document.getElementById('pm-tbody');if(!tb)return;
+    const s=(this._p-1)*this._pp,pg=this._f.slice(s,s+this._pp);
+    if(!pg.length){tb.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--gray-m)">Aucune permission enregistrée.</td></tr>`;return;}
+    tb.innerHTML=pg.map(p=>{
+      const a=this._ags[p.agentId];
+      const ref=H.ref('PRM',p.id,new Date(p.dateCreation||Date.now()).getFullYear());
+      const jb=p.justificatifFourni==='Oui'?'<span class="badge bg-success">✓ Fourni</span>':p.justificatifFourni==='En cours'?'<span class="badge bg-warning">En cours</span>':'<span class="badge bg-danger">Manquant</span>';
+      return`<tr>
+        <td><small style="color:var(--gray-m)">${ref}</small></td>
+        <td><strong>${H.esc(H.fn(a))}</strong><br><small style="color:var(--gray-m)">${a?.matricule||''}</small></td>
+        <td>${H.esc(p.motif||'')}</td>
+        <td>${H.fdate(p.dateDebut)}</td>
+        <td>${H.fdate(p.dateFin)}</td>
+        <td><span class="badge bg-info">${p.joursLegaux||0}j</span></td>
+        <td><strong>${p.joursAccordes||0}j</strong></td>
+        <td>${jb}</td>
+        <td>${H.badge(p.statut)}</td>
+        <td class="actions">
+          <button class="btn btn-secondary btn-xs" onclick="Permissions.edit(${p.id})">✏️</button>
+          <button class="btn btn-info btn-xs" onclick="Print.autorisation(${p.id})">🖨️</button>
+          <button class="btn btn-danger btn-xs" onclick="Permissions.del(${p.id})">🗑️</button>
+        </td>
+      </tr>`;
+    }).join('');
+    UI.pages('pm-pages',this._f.length,this._p,this._pp,`p=>{Permissions._p=p;Permissions.render()}`);
+  },
+
+  search(v){const q=v.toLowerCase();this._f=this._d.filter(p=>{const a=this._ags[p.agentId];return H.fn(a).toLowerCase().includes(q)||(p.motif||'').toLowerCase().includes(q);});this._p=1;this.render();},
+  filter(){const fs=document.getElementById('pm-f-statut')?.value||'';const q=(document.getElementById('pm-search')?.value||'').toLowerCase();this._f=this._d.filter(p=>{const a=this._ags[p.agentId];return(!q||H.fn(a).toLowerCase().includes(q))&&(!fs||p.statut===fs);});this._p=1;this.render();},
+
+  updLegal(){
+    const m=document.getElementById('pm-motif').value;
+    const d=H.permJ(m);
+    document.getElementById('pm-jl').value=d.j;
+    document.getElementById('pm-ja').value=d.j;
+    const el=document.getElementById('pm-legal-info');
+    if(d.j>0||d.just){el.style.display='block';el.innerHTML=`📋 Droit légal: <strong>${d.j} jours ouvrables</strong> | Justificatif: <strong>${d.just}</strong>`;}
+    else{el.style.display='none';}
+    this.calcJ();
+  },
+
+  calcJ(){
+    const d1=document.getElementById('pm-deb').value,d2=document.getElementById('pm-fin').value;
+    if(d1&&d2)document.getElementById('pm-jd').value=H.workdays(d1,d2);
+  },
+
+  showAdd(){
+    document.getElementById('m-perm-title').textContent='➕ Nouvelle Permission';
+    document.getElementById('pm-id').value='';
+    document.getElementById('pm-ag-id').value='';
+    document.getElementById('pm-ag-search').value='';
+    document.getElementById('pm-ag-disp').innerHTML='';
+    document.getElementById('pm-motif').value='';
+    ['pm-deb','pm-fin','pm-ret','pm-jl','pm-jd','pm-ja','pm-refjust','pm-obs'].forEach(f=>{const e=document.getElementById(f);if(e)e.value='';});
+    document.getElementById('pm-statut').value='En attente';
+    document.getElementById('pm-justif').value='Non';
+    document.getElementById('pm-legal-info').style.display='none';
+    UI.open('m-perm');
+  },
+
+  async edit(id){
+    const p=await DB.get('permissions',id);if(!p)return;
+    document.getElementById('m-perm-title').textContent='✏️ Modifier Permission';
+    document.getElementById('pm-id').value=id;
+    document.getElementById('pm-ag-id').value=p.agentId;
+    const a=await DB.get('agents',p.agentId);
+    if(a){document.getElementById('pm-ag-search').value=H.fn(a);document.getElementById('pm-ag-disp').innerHTML=`<span class="badge bg-success" style="font-size:11px;margin-top:4px">✓ ${a.matricule} — ${H.fn(a)}</span>`;}
+    document.getElementById('pm-motif').value=p.motif||'';
+    document.getElementById('pm-deb').value=p.dateDebut||'';
+    document.getElementById('pm-fin').value=p.dateFin||'';
+    document.getElementById('pm-ret').value=p.dateRetour||'';
+    document.getElementById('pm-jl').value=p.joursLegaux||0;
+    document.getElementById('pm-jd').value=p.joursDemandes||0;
+    document.getElementById('pm-ja').value=p.joursAccordes||0;
+    document.getElementById('pm-justif').value=p.justificatifFourni||'Non';
+    document.getElementById('pm-refjust').value=p.refJustificatif||'';
+    document.getElementById('pm-statut').value=p.statut||'En attente';
+    document.getElementById('pm-obs').value=p.observations||'';
+    if(p.motif)this.updLegal();
+    UI.open('m-perm');
+  },
+
+  async save(){
+    const aid=parseInt(document.getElementById('pm-ag-id').value);
+    const motif=document.getElementById('pm-motif').value;
+    if(!aid||!motif){UI.toast('Agent et motif obligatoires','error');return;}
+    const data={agentId:aid,motif,
+      dateDebut:document.getElementById('pm-deb').value,
+      dateFin:document.getElementById('pm-fin').value,
+      dateRetour:document.getElementById('pm-ret').value,
+      joursLegaux:parseInt(document.getElementById('pm-jl').value)||0,
+      joursDemandes:parseInt(document.getElementById('pm-jd').value)||0,
+      joursAccordes:parseInt(document.getElementById('pm-ja').value)||0,
+      justificatifFourni:document.getElementById('pm-justif').value,
+      refJustificatif:document.getElementById('pm-refjust').value,
+      statut:document.getElementById('pm-statut').value,
+      observations:document.getElementById('pm-obs').value,
+      dateCreation:new Date().toISOString()
+    };
+    const id=document.getElementById('pm-id').value;
+    if(id){data.id=parseInt(id);await DB.put('permissions',data);UI.toast('Permission mise à jour');}
+    else{await DB.add('permissions',data);UI.toast('Permission enregistrée');}
+    UI.close('m-perm');this.load();
+  },
+
+  del(id){UI.confirm('Supprimer','Supprimer cette permission ?',async()=>{await DB.del('permissions',id);UI.toast('Supprimé');this.load();});}
+};
+
+// ═══════ ABSENCES ═══════
+const Absences={
+  _d:[],_ags:{},_f:[],_p:1,_pp:18,
+
+  async load(){
+    UI.loading(true);
+    this._d=await DB.getAll('absences');
+    const ags=await DB.getAll('agents');
+    this._ags=Object.fromEntries(ags.map(a=>[a.id,a]));
+    this._f=[...this._d];this.render();UI.loading(false);
+  },
+
+  render(){
+    const tb=document.getElementById('ab-tbody');if(!tb)return;
+    const s=(this._p-1)*this._pp,pg=this._f.slice(s,s+this._pp);
+    if(!pg.length){tb.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--gray-m)">Aucune absence enregistrée.</td></tr>`;return;}
+    // cumul par agent
+    const cum={};this._d.forEach(ab=>{cum[ab.agentId]=(cum[ab.agentId]||0)+1;});
+    tb.innerHTML=pg.map(ab=>{
+      const a=this._ags[ab.agentId];
+      const ref=H.ref('ABS',ab.id,new Date(ab.dateCreation||Date.now()).getFullYear());
+      const n=cum[ab.agentId]||1;
+      const sc=n>=10?'bg-danger':n>=5?'bg-warning':'bg-gray';
+      const sanc=H.sanction(n);
+      return`<tr>
+        <td><small style="color:var(--gray-m)">${ref}</small></td>
+        <td><strong>${H.esc(H.fn(a))}</strong><br><small style="color:var(--gray-m)">${a?.matricule||''}</small></td>
+        <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${H.esc(a?.direction||'')}</td>
+        <td><span class="badge ${ab.typeAbsence==='Abandon de poste'?'bg-danger':'bg-warning'}">${H.esc(ab.typeAbsence||'')}</span></td>
+        <td>${H.fdate(ab.dateAbsence)}</td>
+        <td>${ab.nbJours||1}</td>
+        <td><span class="badge ${sc}">${n} abs.</span></td>
+        <td style="font-size:11px;max-width:120px">${sanc}</td>
+        <td>${H.badge(ab.statut)}</td>
+        <td class="actions">
+          <button class="btn btn-secondary btn-xs" onclick="Absences.edit(${ab.id})">✏️</button>
+          <button class="btn btn-danger btn-xs" onclick="Absences.del(${ab.id})">🗑️</button>
+        </td>
+      </tr>`;
+    }).join('');
+    UI.pages('ab-pages',this._f.length,this._p,this._pp,`p=>{Absences._p=p;Absences.render()}`);
+  },
+
+  search(v){const q=v.toLowerCase();this._f=this._d.filter(ab=>{const a=this._ags[ab.agentId];return H.fn(a).toLowerCase().includes(q)||(a?.direction||'').toLowerCase().includes(q);});this._p=1;this.render();},
+  filter(){const ft=document.getElementById('ab-f-type')?.value||'';const q=(document.getElementById('ab-search')?.value||'').toLowerCase();this._f=this._d.filter(ab=>{const a=this._ags[ab.agentId];return(!q||H.fn(a).toLowerCase().includes(q))&&(!ft||ab.typeAbsence===ft);});this._p=1;this.render();},
+
+  showAdd(){
+    document.getElementById('m-abs-title').textContent='⚠️ Enregistrer une Absence';
+    document.getElementById('ab-id').value='';
+    document.getElementById('ab-ag-id').value='';
+    document.getElementById('ab-ag-search').value='';
+    document.getElementById('ab-ag-disp').innerHTML='';
+    document.getElementById('ab-type').value='';
+    document.getElementById('ab-date').value='';
+    document.getElementById('ab-heure').value='';
+    document.getElementById('ab-nbj').value='1';
+    document.getElementById('ab-motif').value='';
+    document.getElementById('ab-statut').value='En traitement';
+    document.getElementById('ab-obs').value='';
+    UI.open('m-abs');
+  },
+
+  async edit(id){
+    const ab=await DB.get('absences',id);if(!ab)return;
+    document.getElementById('m-abs-title').textContent='✏️ Modifier Absence';
+    document.getElementById('ab-id').value=id;
+    document.getElementById('ab-ag-id').value=ab.agentId;
+    const a=await DB.get('agents',ab.agentId);
+    if(a){document.getElementById('ab-ag-search').value=H.fn(a);document.getElementById('ab-ag-disp').innerHTML=`<span class="badge bg-success" style="font-size:11px;margin-top:4px">✓ ${a.matricule} — ${H.fn(a)}</span>`;}
+    document.getElementById('ab-type').value=ab.typeAbsence||'';
+    document.getElementById('ab-date').value=ab.dateAbsence||'';
+    document.getElementById('ab-heure').value=ab.heureArrivee||'';
+    document.getElementById('ab-nbj').value=ab.nbJours||1;
+    document.getElementById('ab-motif').value=ab.motifDeclare||'';
+    document.getElementById('ab-statut').value=ab.statut||'En traitement';
+    document.getElementById('ab-obs').value=ab.observations||'';
+    UI.open('m-abs');
+  },
+
+  async save(){
+    const aid=parseInt(document.getElementById('ab-ag-id').value);
+    const type=document.getElementById('ab-type').value;
+    if(!aid||!type){UI.toast('Agent et type obligatoires','error');return;}
+    const data={agentId:aid,typeAbsence:type,
+      dateAbsence:document.getElementById('ab-date').value,
+      heureArrivee:document.getElementById('ab-heure').value,
+      nbJours:parseFloat(document.getElementById('ab-nbj').value)||1,
+      motifDeclare:document.getElementById('ab-motif').value,
+      statut:document.getElementById('ab-statut').value,
+      observations:document.getElementById('ab-obs').value,
+      dateCreation:new Date().toISOString()
+    };
+    const id=document.getElementById('ab-id').value;
+    if(id){data.id=parseInt(id);await DB.put('absences',data);UI.toast('Absence mise à jour');}
+    else{await DB.add('absences',data);UI.toast('Absence enregistrée');}
+    UI.close('m-abs');this.load();
+  },
+
+  del(id){UI.confirm('Supprimer','Supprimer cet enregistrement ?',async()=>{await DB.del('absences',id);UI.toast('Supprimé');this.load();});}
+};
+
+// ═══════ SOLDES ═══════
+const Soldes={
+  _data:[],
+
+  async load(){
+    UI.loading(true);
+    const [ags,cgs,perms,abs]=await Promise.all([DB.getAll('agents'),DB.getAll('conges'),DB.getAll('permissions'),DB.getAll('absences')]);
+    this._data=ags.map(a=>{
+      const anc=H.anc(a.datePriseService);
+      const d=H.droits(a.typeContrat,anc);
+      const pris=cgs.filter(c=>c.agentId===a.id&&!['Refusé','Annulé'].includes(c.statut)).reduce((s,c)=>s+(parseInt(c.joursAccordes)||0),0);
+      const permPris=perms.filter(p=>p.agentId===a.id&&p.statut==='Approuvé').reduce((s,p)=>s+(parseInt(p.joursAccordes)||0),0);
+      const nbAbs=abs.filter(ab=>ab.agentId===a.id).length;
+      const solde=d.j-pris;
+      const reportable=Math.min(Math.max(solde,0),d.cum);
+      const alerte=solde<0?'dep':solde<5?'crit':'ok';
+      return{...a,anc,joursAn:d.j,cumulMax:d.cum,pris,permPris,nbAbs,solde,reportable,alerte};
+    });
+    this.render();UI.loading(false);
+  },
+
+  render(){
+    const tb=document.getElementById('sl-tbody');if(!tb)return;
+    const q=(document.getElementById('sl-search')?.value||'').toLowerCase();
+    const fa=document.getElementById('sl-f-alert')?.value||'';
+    const filtered=this._data.filter(a=>{
+      const mq=!q||H.fn(a).toLowerCase().includes(q)||(a.matricule||'').toLowerCase().includes(q);
+      const ma=!fa||(fa==='crit'&&(a.alerte==='crit'||a.solde<0))||(fa==='dep'&&a.alerte==='dep')||(fa==='ok'&&a.alerte==='ok');
+      return mq&&ma;
+    });
+    if(!filtered.length){tb.innerHTML=`<tr><td colspan="10" style="text-align:center;padding:40px;color:var(--gray-m)">Aucun résultat.</td></tr>`;return;}
+    tb.innerHTML=filtered.map(a=>{
+      const pct=a.joursAn>0?Math.min(100,Math.round(a.pris/a.joursAn*100)):0;
+      const bc=a.solde<0?'sf-danger':a.solde<5?'sf-warn':'sf-good';
+      const ai=a.solde<0?'🔴':a.solde<5?'⚠️':'✅';
+      const ab=a.solde<0?'bg-danger':a.solde<5?'bg-warning':'bg-success';
+      const at=a.solde<0?'Dépassement':a.solde<5?'Critique':'Normal';
+      return`<tr>
+        <td><strong>${H.esc(a.matricule)}</strong></td>
+        <td>${H.esc(H.fn(a))}</td>
+        <td><span class="badge ${a.typeContrat==='Fonctionnaire'?'bg-success':'bg-info'}">${a.typeContrat||''}</span></td>
+        <td>${a.anc}a</td>
+        <td>${a.joursAn}j</td>
+        <td>${a.cumulMax}j</td>
+        <td>${a.pris}j<div class="solde-bar"><div class="solde-fill ${bc}" style="width:${pct}%"></div></div></td>
+        <td style="font-weight:800;color:${a.solde<0?'var(--danger)':a.solde<5?'var(--warning)':'var(--primary)'}">${a.solde}j</td>
+        <td>${a.reportable}j</td>
+        <td>${ai} <span class="badge ${ab}">${at}</span></td>
+      </tr>`;
+    }).join('');
+  }
+};
+
+// ═══════ DOCUMENTS ═══════
+const Documents={
+  _ags:[],_cur:null,_file:null,
+
+  async load(){
+    this._ags=await DB.getAll('agents');
+    this.renderAgents(this._ags);
+  },
+
+  renderAgents(ags){
+    const el=document.getElementById('doc-agent-list');if(!el)return;
+    el.innerHTML=ags.map(a=>`<div class="agent-list-item${a.id===this._cur?' sel':''}" onclick="Documents.selAgent(${a.id})">
+      <div style="font-weight:700;font-size:12px">${H.esc(H.fn(a))}</div>
+      <div style="font-size:10px;color:var(--gray-m)">${H.esc(a.matricule)} · ${H.esc(a.direction||'')}</div>
+    </div>`).join('');
+  },
+
+  searchAgent(v){const q=v.toLowerCase();this.renderAgents(this._ags.filter(a=>H.fn(a).toLowerCase().includes(q)||(a.matricule||'').toLowerCase().includes(q)));},
+
+  async selAgent(id){
+    this._cur=id;
+    const a=this._ags.find(x=>x.id===id);
+    document.getElementById('doc-placeholder').style.display='none';
+    document.getElementById('doc-main-card').style.display='block';
+    document.getElementById('doc-agent-name').textContent=`📁 ${H.fn(a)} — ${a?.matricule||''}`;
+    this.renderDocs(id);
+    this.renderAgents(this._ags);
+  },
+
+  async renderDocs(agentId){
+    const docs=await DB.byIdx('documents','agentId',agentId);
+    const el=document.getElementById('doc-list');if(!el)return;
+    if(!docs.length){el.innerHTML='<div style="text-align:center;padding:40px;color:var(--gray-m)">Aucun document. Cliquez sur <strong>+ Ajouter Document</strong>.</div>';return;}
+    el.innerHTML=docs.map(d=>`<div class="doc-item">
+      <div class="doc-icon">${this._icon(d.type)}</div>
+      <div class="doc-info">
+        <div class="doc-name">${H.esc(d.nom)}</div>
+        <div class="doc-meta">${d.type} · ${H.fdate(d.date)}${d.lienType?' · 🔗 '+d.lienType:''}</div>
+      </div>
+      <div class="actions">
+        ${d.fileData?`<button class="btn btn-info btn-xs" onclick="Documents.view(${d.id})">👁️ Voir</button>`:''}
+        <button class="btn btn-danger btn-xs" onclick="Documents.del(${d.id})">🗑️</button>
+      </div>
+    </div>`).join('');
+  },
+
+  _icon(t){const m={'Acte de naissance':'👶','CNI / Passeport':'🪪','Diplôme':'🎓','Acte de mariage':'💍','Acte de décès':'📜','Certificat médical':'🏥','Ordre de mission':'✈️','Décision de nomination':'📋','Arrêté de titularisation':'⚖️','Contrat de travail':'📝'};return m[t]||'📄';},
+
+  showUpload(){
+    if(!this._cur){UI.toast('Sélectionnez un agent d\'abord','error');return;}
+    document.getElementById('doc-ag-id-f').value=this._cur;
+    document.getElementById('doc-nom').value='';
+    document.getElementById('doc-date').value='';
+    document.getElementById('doc-type').value='Acte de naissance';
+    document.getElementById('doc-lien').value='';
+    document.getElementById('doc-fn').textContent='';
+    this._file=null;
+    UI.open('m-doc');
+  },
+
+  fileSelected(inp){
+    const f=inp.files[0];if(!f)return;
+    if(f.size>5*1024*1024){UI.toast('Fichier trop volumineux (max 5Mo)','error');return;}
+    document.getElementById('doc-fn').textContent=`✓ ${f.name}`;
+    const r=new FileReader();
+    r.onload=e=>{this._file={data:e.target.result,name:f.name,mime:f.type};};
+    r.readAsDataURL(f);
+    // drag-drop visual
+    const dz=document.getElementById('doc-dz');
+    if(dz){dz.style.borderColor='var(--primary)';dz.style.background='var(--primary-p)';}
+  },
+
+  async save(){
+    const agentId=parseInt(document.getElementById('doc-ag-id-f').value);
+    const nom=document.getElementById('doc-nom').value.trim();
+    if(!nom){UI.toast('Intitulé du document obligatoire','error');return;}
+    await DB.add('documents',{
+      agentId,nom,
+      type:document.getElementById('doc-type').value,
+      date:document.getElementById('doc-date').value,
+      lienType:document.getElementById('doc-lien').value,
+      fileData:this._file?.data||null,
+      fileName:this._file?.name||null,
+      fileMime:this._file?.mime||null,
+      dateCreation:new Date().toISOString()
+    });
+    UI.toast('Document enregistré');UI.close('m-doc');
+    this.renderDocs(agentId);this._file=null;
+  },
+
+  async view(id){
+    const d=await DB.get('documents',id);
+    if(!d?.fileData){UI.toast('Aucun fichier attaché','error');return;}
+    const w=window.open('','_blank');
+    if(d.fileMime?.includes('pdf')){
+      w.document.write(`<iframe src="${d.fileData}" style="width:100%;height:100vh;border:none"></iframe>`);
+    }else{
+      w.document.write(`<!DOCTYPE html><html><head><title>${H.esc(d.nom)}</title></head><body style="margin:0;background:#111;display:flex;align-items:center;justify-content:center;min-height:100vh"><img src="${d.fileData}" style="max-width:100%;max-height:100vh;object-fit:contain"></body></html>`);
+    }
+    w.document.close();
+  },
+
+  del(id){UI.confirm('Supprimer','Supprimer ce document ?',async()=>{await DB.del('documents',id);UI.toast('Document supprimé');if(this._cur)this.renderDocs(this._cur);});}
+};
+
+
+// ═══════ DASHBOARD ═══════
+const Dashboard={
+  _ch:{},
+  async load(){
+    UI.loading(true);
+    const[ags,cgs,perms,abs]=await Promise.all([DB.getAll('agents'),DB.getAll('conges'),DB.getAll('permissions'),DB.getAll('absences')]);
+    this._kpis(ags,cgs,perms,abs);
+    this._charts(ags,cgs,abs);
+    this._alerts(ags,cgs,abs);
+    UI.loading(false);
+  },
+
+  _kpis(ags,cgs,perms,abs){
+    const kpis=[
+      {icon:'👥',v:ags.length,l:'Total agents',c:'#1B5E20'},
+      {icon:'🏛',v:ags.filter(a=>a.typeContrat==='Fonctionnaire').length,l:'Fonctionnaires',c:'#2E7D32'},
+      {icon:'📝',v:ags.filter(a=>a.typeContrat==='Contractuel').length,l:'Contractuels',c:'#1565C0'},
+      {icon:'✅',v:ags.filter(a=>a.statut==='En activité').length,l:'En activité',c:'#004D40'},
+      {icon:'🏖',v:ags.filter(a=>a.statut==='En congé').length,l:'En congé',c:'#E65100'},
+      {icon:'⏳',v:cgs.filter(c=>c.statut==='En attente').length,l:'Congés en attente',c:'#F9A825'},
+      {icon:'⚠️',v:abs.filter(a=>a.typeAbsence==='Absence injustifiée').length,l:'Abs. injustifiées',c:'#C62828'},
+      {icon:'✔️',v:perms.filter(p=>p.statut==='Approuvé').length,l:'Permissions accordées',c:'#6A1B9A'},
+    ];
+    document.getElementById('kpi-grid').innerHTML=kpis.map(k=>`<div class="kpi-card" style="--kc:${k.c}"><div class="kpi-icon">${k.icon}</div><div class="kpi-value">${k.v}</div><div class="kpi-label">${k.l}</div></div>`).join('');
+  },
+
+  _charts(ags,cgs,abs){
+    Object.values(this._ch).forEach(c=>{try{c.destroy();}catch{}});this._ch={};
+    if(typeof Chart==='undefined')return;
+    const cc={'rgba(27,94,32,.85)':'#1B5E20','rgba(21,101,192,.85)':'#1565C0','rgba(230,81,0,.85)':'#E65100','rgba(106,27,154,.85)':'#6A1B9A'};
+    const pal=['rgba(27,94,32,.85)','rgba(21,101,192,.85)','rgba(230,81,0,.85)','rgba(106,27,154,.85)','rgba(0,77,64,.85)','rgba(249,168,37,.85)'];
+    const opts={responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:8}}}};
+
+    // Contrats
+    const ct={};ags.forEach(a=>{ct[a.typeContrat||'N/D']=(ct[a.typeContrat||'N/D']||0)+1;});
+    this._ch.ct=new Chart(document.getElementById('ch-contrats'),{type:'doughnut',data:{labels:Object.keys(ct),datasets:[{data:Object.values(ct),backgroundColor:pal}]},options:{...opts,cutout:'65%'}});
+
+    // Sexe
+    const m=ags.filter(a=>a.sexe==='Masculin').length,f=ags.filter(a=>a.sexe==='Féminin').length;
+    this._ch.sx=new Chart(document.getElementById('ch-sexe'),{type:'pie',data:{labels:['Hommes','Femmes'],datasets:[{data:[m,f],backgroundColor:['rgba(21,101,192,.85)','rgba(233,30,99,.85)']}]},options:opts});
+
+    // Congés statuts
+    const cst={};cgs.forEach(c=>{cst[c.statut||'?']=(cst[c.statut||'?']||0)+1;});
+    const cstC={'En attente':'rgba(249,168,37,.85)','Approuvé':'rgba(27,94,32,.85)','En cours':'rgba(21,101,192,.85)','Soldé':'rgba(120,144,156,.85)','Refusé':'rgba(198,40,40,.85)'};
+    this._ch.cg=new Chart(document.getElementById('ch-conges'),{type:'bar',data:{labels:Object.keys(cst),datasets:[{label:'Demandes',data:Object.values(cst),backgroundColor:Object.keys(cst).map(k=>cstC[k]||'rgba(120,144,156,.85)')}]},options:{...opts,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10}}},y:{ticks:{precision:0}}}}});
+
+    // Absences
+    const at={};abs.forEach(a=>{at[a.typeAbsence||'Autre']=(at[a.typeAbsence||'Autre']||0)+1;});
+    this._ch.ab=new Chart(document.getElementById('ch-absences'),{type:'bar',data:{labels:Object.keys(at),datasets:[{label:'Nb',data:Object.values(at),backgroundColor:'rgba(198,40,40,.75)'}]},options:{...opts,plugins:{legend:{display:false}},scales:{x:{ticks:{font:{size:10}}},y:{ticks:{precision:0}}}}});
+  },
+
+  async _alerts(ags,cgs,abs){
+    const al=[];
+    const att=cgs.filter(c=>c.statut==='En attente');
+    if(att.length)al.push({t:'warn',m:`${att.length} demande(s) de congé en attente d'approbation`});
+    const cum={};abs.forEach(a=>{cum[a.agentId]=(cum[a.agentId]||0)+1;});
+    const habs=Object.values(cum).filter(n=>n>=5).length;
+    if(habs)al.push({t:'danger',m:`${habs} agent(s) avec 5+ absences irrégulières — risque disciplinaire`});
+    const in30=ags.filter(a=>{if(!a.dateFinContrat)return false;const d=(new Date(a.dateFinContrat)-Date.now())/(864e5);return d>=0&&d<=30;});
+    if(in30.length)al.push({t:'warn',m:`${in30.length} contrat(s) expirant dans les 30 prochains jours`});
+    // Retirement within 1 year
+    const retBientot=ags.filter(a=>{const r=H.retraite(a.dateNaissance,a.datePriseService);if(!r.date)return false;const j=(new Date(r.date)-Date.now())/(864e5);return j>=0&&j<=365;});
+    if(retBientot.length)al.push({t:'warn',m:`${retBientot.length} agent(s) partant à la retraite dans les 12 prochains mois`});
+    const sans=ags.filter(a=>!a.sexe||!a.typeContrat||!a.datePriseService);
+    if(sans.length)al.push({t:'warn',m:`${sans.length} fiche(s) agent incomplète(s) (données manquantes)`});
+    const el=document.getElementById('alerts-list');
+    el.innerHTML=al.length?al.map(a=>`<div class="alert alert-${a.t==='danger'?'danger':'warn'}">${a.t==='danger'?'🔴':'⚠️'} ${a.m}</div>`).join(''):'<div class="alert alert-success">✅ Aucune alerte RH en ce moment</div>';
+  }
+};
+
+// ═══════ RAPPORTS ═══════
+const Rapports={
+  load(){
+    const raps=[
+      {icon:'👥',title:'État nominatif du personnel',desc:'Liste complète des agents triée par ordre du registre (matricule), avec date de retraite',c:'#1B5E20',fn:'Print.etatPersonnel()'},
+      {icon:'📋',title:'Fiche individuelle agent',desc:'Fiche complète d\'un agent à sélectionner, avec date de départ à la retraite',c:'#1565C0',fn:'Print.selectAgent()'},
+      {icon:'🏖️',title:'État des congés',desc:'Récapitulatif de toutes les demandes de congé',c:'#E65100',fn:'Print.etatConges()'},
+      {icon:'📋',title:'État des permissions',desc:'Toutes les permissions accordées avec justificatifs',c:'#6A1B9A',fn:'Print.etatPermissions()'},
+      {icon:'⚠️',title:'Rapport des absences',desc:'Absences irrégulières, retards et sanctions',c:'#C62828',fn:'Print.etatAbsences()'},
+      {icon:'📊',title:'État des soldes de congés',desc:'Droits, pris, soldes et cumuls par agent',c:'#004D40',fn:'Print.etatSoldes()'},
+      {icon:'📅',title:'Situation par période',desc:'Congés, permissions et absences sur une période définie — impression possible',c:'#F9A825',fn:'Print.situationPeriode()'},
+    ];
+    document.getElementById('rapports-grid').innerHTML=raps.map(r=>`<div class="rapport-card" style="--rc:${r.c}"><div class="r-icon">${r.icon}</div><div class="r-title">${r.title}</div><div class="r-desc">${r.desc}</div><button class="btn btn-sm" style="background:${r.c};color:#fff" onclick="${r.fn}">🖨️ Générer &amp; Imprimer</button></div>`).join('');
+  }
+};
+
+// ═══════ PRINT ENGINE ═══════
+const Print={
+  async _min(){return{nom:await DB.prm('ministere','Ministère du développement à la base et de l\'économie sociale et solidaire'),drh:await DB.prm('drh','DAF - RAF'),yr:await DB.prm('exercice',String(new Date().getFullYear()))};},
+
+  _hdr(m){return`<div style="text-align:center;border-bottom:3px solid #1B5E20;padding-bottom:12px;margin-bottom:20px">
+    <div style="font-size:11px;color:#555;letter-spacing:2px">REPUBLIQUE TOGOLAISE</div>
+    <div style="font-size:10px;color:#555;margin-bottom:8px">Travail - Liberté - Patrie</div>
+    <div style="font-size:15px;font-weight:800;color:#1B5E20">${m.nom}</div>
+    <div style="font-size:11px;color:#555">Direction des Affaires Financières - RH</div>
+  </div>`;},
+
+  _ftr(m){const d=new Date().toLocaleDateString('fr-FR',{year:'numeric',month:'long',day:'numeric',hour:"2-digit",minute:"2-digit",second:"2-digit"});
+    return`<div style="margin-top:30px;border-top:1px solid #ccc;padding-top:10px;display:flex;justify-content:space-between;font-size:10px;color:#666"><div>Édité le ${d}</div><div>${m.nom}</div><div>Direction des Affaires financières</div></div>`;},
+
+  _open(html,title){
+    const w=window.open('','_blank','width=920,height=720');
+    w.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"><title>${title}</title>
+    <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;font-size:12px;padding:24px;color:#000;background:#fff}
+    table{width:100%;border-collapse:collapse;margin-bottom:14px;font-size:11px}
+    th{background:#1B5E20;color:#fff;padding:7px 8px;text-align:left;font-weight:700}
+    td{padding:7px 8px;border-bottom:1px solid #eee}tr:nth-child(even) td{background:#f9f9f9}
+    h1{font-size:15px;text-align:center;margin-bottom:6px;font-weight:800}
+    h2{font-size:12px;color:#1B5E20;border-bottom:2px solid #1B5E20;padding-bottom:3px;margin:16px 0 8px;font-weight:700}
+    .ref{text-align:right;font-size:10px;color:#666;margin-bottom:16px}
+    .sigs{display:flex;justify-content:space-between;margin-top:50px;gap:20px}
+    .sig{text-align:center;flex:1}.sig-line{border-top:1px solid #000;margin-top:55px;margin-bottom:5px}
+    .no-print{display:block} @media print{.no-print{display:none!important}}
+    </style></head><body>${html}
+    <div class="no-print" style="text-align:center;margin-top:24px;display:flex;gap:10px;justify-content:center">
+      <button onclick="window.print()" style="padding:10px 24px;background:#1B5E20;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:700">🖨️ Imprimer</button>
+      <button onclick="window.close()" style="padding:10px 24px;background:#78909C;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px">✕ Fermer</button>
+    </div></body></html>`);
+    w.document.close();
+  },
+
+  async ficheAgent(id){
+    const a=await DB.get('agents',id);if(!a)return;
+    const m=await this._min();
+    const anc=H.anc(a.datePriseService);
+    const d=H.droits(a.typeContrat,anc);
+    const ret=H.retraite(a.dateNaissance,a.datePriseService);
+    const html=`${this._hdr(m)}
+    <h1>FICHE INDIVIDUELLE AGENT</h1>
+    <div class="ref">Réf: FICHE/${a.matricule}/${m.yr}</div>
+    <h2>I. IDENTIFICATION</h2>
+    <table>
+      <tr><td width="30%"><strong>Matricule</strong></td><td>${a.matricule}</td><td width="30%"><strong>Statut</strong></td><td>${a.statut||''}</td></tr>
+      <tr><td><strong>Nom &amp; Prénoms</strong></td><td colspan="3"><strong>${H.fn(a)}</strong></td></tr>
+      <tr><td><strong>Date de naissance</strong></td><td>${H.fdate(a.dateNaissance)} (${H.age(a.dateNaissance)})</td><td><strong>Sexe</strong></td><td>${a.sexe||''}</td></tr>
+      <tr><td><strong>Lieu de naissance</strong></td><td>${a.lieuNaissance||'-'}</td><td><strong>Sit. matrimoniale</strong></td><td>${a.situationMatrimoniale||'-'} · ${a.nbEnfants||0} enfant(s)</td></tr>
+      <tr><td><strong>N° CNI</strong></td><td>${a.cni||'-'}</td><td><strong>Téléphone</strong></td><td>${a.tel||'-'}</td></tr>
+    </table>
+    <h2>II. INFORMATIONS ADMINISTRATIVES</h2>
+    <table>
+      <tr><td width="30%"><strong>Type de contrat</strong></td><td>${a.typeContrat}</td><td width="30%"><strong>Catégorie</strong></td><td>${a.categorie||'-'}</td></tr>
+      <tr><td><strong>Corps</strong></td><td>${a.corps||'-'}</td><td><strong>Échelon</strong></td><td>${a.echelon||'-'}</td></tr>
+      <tr><td><strong>Direction/Service</strong></td><td>${a.direction||'-'}</td><td><strong>Poste</strong></td><td>${a.poste||'-'}</td></tr>
+      <tr><td><strong>Lieu d'affectation</strong></td><td>${a.lieuAffectation||'Lomé'}</td><td><strong>Prise de service</strong></td><td>${H.fdate(a.datePriseService)}</td></tr>
+      <tr><td><strong>Formation</strong></td><td>${a.specialite||'-'}</td><td><strong>Nomination</strong></td><td>${H.fdate(a.nominations)}</td></tr>
+      <tr><td><strong>Ancienneté</strong></td><td><strong>${anc} ans</strong></td><td><strong>Fin de contrat</strong></td><td>${H.fdate(a.dateFinContrat)||'CDI / Indéterminé'}</td></tr>
+      <tr><td><strong>Date départ retraite</strong></td><td><strong>${ret.date?H.fdate(ret.date):'—'}</strong>
+      </td></tr>
+    </table>
+    <h2>III. DROITS À CONGÉS</h2>
+    <table><thead><tr><th>Droits annuels</th><th>Cumul max autorisé</th><th>Base légale</th></tr></thead>
+    <tbody><tr><td><strong>${d.j} jours / an</strong></td><td><strong>${d.cum} jours</strong></td><td>${d.base}</td></tr></tbody></table>
+    <div class="sigs">
+      <div class="sig"><div class="sig-line"></div><div style="font-size:11px">L'Agent<br><strong>${H.fn(a)}</strong></div></div>
+      <div class="sig"><div class="sig-line"></div><div style="font-size:11px">Le Directeur des Affaires financières<br><strong>${m.drh}</strong></div></div>
+    </div>
+    ${this._ftr(m)}`;
+    this._open(html,`Fiche Agent — ${H.fn(a)}`);
+  },
+
+  async demandeConge(id){
+    const c=await DB.get('conges',id);if(!c)return;
+    const a=await DB.get('agents',c.agentId);
+    const m=await this._min();
+    const ref=H.ref('CGE',id,new Date(c.dateCreation||Date.now()).getFullYear());
+    const html=`${this._hdr(m)}
+    <h1>DEMANDE DE CONGÉ</h1>
+    <div class="ref">Réf: ${ref}</div>
+    <h2>I. AGENT</h2>
+    <table>
+      <tr><td width="30%"><strong>Matricule</strong></td><td>${a?.matricule||''}</td><td width="30%"><strong>Catégorie</strong></td><td>${a?.categorie||''}</td></tr>
+      <tr><td><strong>Nom &amp; Prénoms</strong></td><td colspan="3"><strong>${H.fn(a)}</strong></td></tr>
+      <tr><td><strong>Direction/Service</strong></td><td>${a?.direction||''}</td><td><strong>Poste</strong></td><td>${a?.poste||''}</td></tr>
+    </table>
+    <h2>II. DÉTAILS DU CONGÉ</h2>
+    <table>
+      <tr><td width="30%"><strong>Type de congé</strong></td><td colspan="3"><strong>${c.typeConge}</strong></td></tr>
+      <tr><td><strong>Date de départ</strong></td><td>${H.fdate(c.dateDepart)}</td><td><strong>Date retour prévue</strong></td><td>${H.fdate(c.dateRetourPrevu)}</td></tr>
+      <tr><td><strong>Durée demandée</strong></td><td>${c.joursDemandes} jours ouvrables</td><td><strong>Durée accordée</strong></td><td><strong>${c.joursAccordes} jours ouvrables</strong></td></tr>
+      <tr><td><strong>Intérimaire</strong></td><td colspan="3">${c.interimaire||'—'}</td></tr>
+      <tr><td><strong>Date reprise effective</strong></td><td colspan="3">${H.fdate(c.dateRepriseEffective)||'À compléter'}</td></tr>
+    </table>
+    <h2>III. DÉCISION</h2>
+    <table><tr><td width="30%"><strong>Statut</strong></td><td><strong>${c.statut}</strong></td><td width="30%"><strong>Visa</strong></td><td>${c.visaResponsable||'—'}</td></tr></table>
+    <div class="sigs">
+      <div class="sig"><div class="sig-line"></div><div style="font-size:11px">L'Agent<br><strong>${H.fn(a)}</strong></div></div>
+      <div class="sig"><div class="sig-line"></div><div style="font-size:11px">Chef de Service</div></div>
+      <div class="sig"><div class="sig-line"></div><div style="font-size:11px">Le Directeur des Affaires Financières<br><strong>${m.drh}</strong></div></div>
+    </div>
+    ${this._ftr(m)}`;
+    this._open(html,`Demande Congé — ${H.fn(a)}`);
+  },
+
+  async autorisation(id){
+    const p=await DB.get('permissions',id);if(!p)return;
+    const a=await DB.get('agents',p.agentId);
+    const m=await this._min();
+    const ref=H.ref('PRM',id,new Date(p.dateCreation||Date.now()).getFullYear());
+    const html=`${this._hdr(m)}
+    <h1>AUTORISATION D'ABSENCE EXCEPTIONNELLE</h1>
+    <div class="ref">Réf: ${ref}</div>
+    <table>
+      <tr><td width="30%"><strong>Agent</strong></td><td colspan="3"><strong>${H.fn(a)}</strong> · Matr: ${a?.matricule||''}</td></tr>
+      <tr><td><strong>Direction</strong></td><td>${a?.direction||''}</td><td><strong>Poste</strong></td><td>${a?.poste||''}</td></tr>
+      <tr><td><strong>Motif</strong></td><td colspan="3"><strong>${p.motif}</strong></td></tr>
+      <tr><td><strong>Période</strong></td><td colspan="3">Du <strong>${H.fdate(p.dateDebut)}</strong> au <strong>${H.fdate(p.dateFin)}</strong></td></tr>
+      <tr><td><strong>Durée légale</strong></td><td>${p.joursLegaux} j ouvrables</td><td><strong>Durée accordée</strong></td><td><strong>${p.joursAccordes} jours ouvrables</strong></td></tr>
+      <tr><td><strong>Justificatif</strong></td><td colspan="3">${p.justificatifFourni==='Oui'?`✓ Fourni — Réf: ${p.refJustificatif||'—'}`:'À fournir obligatoirement'}</td></tr>
+      <tr><td><strong>Décision</strong></td><td colspan="3"><strong>${p.statut}</strong></td></tr>
+    </table>
+    <div class="sigs">
+      <div class="sig"><div class="sig-line"></div><div style="font-size:11px">L'Agent<br><strong>${H.fn(a)}</strong></div></div>
+      <div class="sig"><div class="sig-line"></div><div style="font-size:11px">Le Directeur des Affaires Financières<br><strong>${m.drh}</strong></div></div>
+    </div>
+    ${this._ftr(m)}`;
+    this._open(html,`Autorisation Absence — ${H.fn(a)}`);
+  },
+
+  async etatPersonnel(){
+    const ags=await DB.getAll('agents');const m=await this._min();
+    // Sort by matricule (registre du personnel)
+    ags.sort((a,b)=>(a.matricule||'').localeCompare(b.matricule||'',undefined,{numeric:true}));
+    const rows=ags.map((a,i)=>{
+      const ret=H.retraite(a.dateNaissance,a.datePriseService);
+      return`<tr><td>${i+1}</td><td>${a.matricule}</td><td>${H.fn(a)}</td><td>${a.sexe||''}</td><td>${a.direction||''}</td><td>${a.poste||''}</td><td>${a.typeContrat||''}</td><td>${a.categorie||''}</td><td>${H.anc(a.datePriseService)}a</td><td>${ret.date?H.fdate(ret.date):'-'}</td><td>${a.statut||''}</td></tr>`;
+    }).join('');
+    const html=`${this._hdr(m)}<h1>ÉTAT NOMINATIF DU PERSONNEL</h1>
+    <div style="margin-bottom:12px;font-size:11px;color:#555">Total: <strong>${ags.length} agents</strong> · Fonct: ${ags.filter(a=>a.typeContrat==='Fonctionnaire').length} · Contr: ${ags.filter(a=>a.typeContrat==='Contractuel').length} · H: ${ags.filter(a=>a.sexe==='Masculin').length} · F: ${ags.filter(a=>a.sexe==='Féminin').length} · <em>Trié par ordre du registre (matricule)</em></div>
+    <table><thead><tr><th>#</th><th>Matricule</th><th>Nom &amp; Prénoms</th><th>Sexe</th><th>Direction/Service</th><th>Poste</th><th>Contrat</th><th>Cat.</th><th>Anc.</th><th>Retraite</th><th>Statut</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="sigs"><div class="sig"><div class="sig-line"></div><div style="font-size:11px">Le Directeur des Affaires Financières<br><strong>${m.drh}</strong></div></div></div>
+    ${this._ftr(m)}`;
+    this._open(html,'État Nominatif du Personnel');
+  },
+
+  async etatPersonnelFiltre(){
+    // Print the currently filtered Personnel list with filter summary and total
+    const ags=Personnel._f;
+    const m=await this._min();
+    // Build filter description
+    const fc=document.getElementById('p-f-contrat')?.value||'';
+    const fd=document.getElementById('p-f-dir')?.value||'';
+    const fs=document.getElementById('p-f-statut')?.value||'';
+    const dps1=document.getElementById('p-f-dps1')?.value||'';
+    const dps2=document.getElementById('p-f-dps2')?.value||'';
+    const filtres=[];
+    if(fc)filtres.push(`Contrat: <strong>${fc}</strong>`);
+    if(fd)filtres.push(`Direction: <strong>${fd}</strong>`);
+    if(fs)filtres.push(`Statut: <strong>${fs}</strong>`);
+    if(dps1)filtres.push(`Prise de service ≥ <strong>${H.fdate(dps1)}</strong>`);
+    if(dps2)filtres.push(`Prise de service ≤ <strong>${H.fdate(dps2)}</strong>`);
+    const filtreStr=filtres.length?`Filtres appliqués : ${filtres.join(' · ')}`:'Aucun filtre — liste complète';
+    const rows=ags.map((a,i)=>{
+      const ret=H.retraite(a.dateNaissance,a.datePriseService);
+      return`<tr><td>${i+1}</td><td>${a.matricule}</td><td>${H.fn(a)}</td><td>${a.sexe||''}</td><td>${a.direction||''}</td><td>${a.poste||''}</td><td>${a.typeContrat||''}</td><td>${a.categorie||''}</td><td>${H.anc(a.datePriseService)}a</td><td>${ret.date?H.fdate(ret.date):'-'}</td><td>${a.statut||''}</td></tr>`;
+    }).join('');
+    const totaux=`Total: <strong>${ags.length} agent(s)</strong> · Fonct: <strong>${ags.filter(a=>a.typeContrat==='Fonctionnaire').length}</strong> · Contr: <strong>${ags.filter(a=>a.typeContrat==='Contractuel').length}</strong> · H: <strong>${ags.filter(a=>a.sexe==='Masculin').length}</strong> · F: <strong>${ags.filter(a=>a.sexe==='Féminin').length}</strong>`;
+    const html=`${this._hdr(m)}<h1>ÉTAT NOMINATIF DU PERSONNEL — SÉLECTION FILTRÉE</h1>
+    <div style="margin-bottom:8px;padding:8px 12px;background:#E8F5E9;border-radius:6px;font-size:11px">${filtreStr}</div>
+    <div style="margin-bottom:12px;font-size:11px;color:#333;font-weight:600">${totaux}</div>
+    <table><thead><tr><th>#</th><th>Matricule</th><th>Nom &amp; Prénoms</th><th>Sexe</th><th>Direction/Service</th><th>Poste</th><th>Contrat</th><th>Cat.</th><th>Anc.</th><th>Retraite</th><th>Statut</th></tr></thead><tbody>${rows}</tbody></table>
+    <div style="margin-top:16px;padding:10px 14px;background:#F5F5F5;border-radius:6px;font-size:11px;font-weight:700;color:#1B5E20">TOTAL DES AGENTS DANS CETTE SÉLECTION : ${ags.length}</div>
+    <div class="sigs"><div class="sig"><div class="sig-line"></div><div style="font-size:11px">Le Directeur des Affaires Financières<br><strong>${m.drh}</strong></div></div></div>
+    ${this._ftr(m)}`;
+    this._open(html,'État Nominatif — Sélection filtrée');
+  },
+
+  async etatConges(){
+    const[cgs,ags]=await Promise.all([DB.getAll('conges'),DB.getAll('agents')]);
+    const am=Object.fromEntries(ags.map(a=>[a.id,a]));const m=await this._min();
+    const rows=cgs.map((c,i)=>{const a=am[c.agentId];return`<tr><td>${i+1}</td><td style="font-size:10px">${H.ref('CGE',c.id,new Date(c.dateCreation||Date.now()).getFullYear())}</td><td>${H.fn(a)}</td><td>${c.typeConge||''}</td><td>${H.fdate(c.dateDepart)}</td><td>${H.fdate(c.dateRetourPrevu)}</td><td><strong>${c.joursAccordes||0}</strong></td><td>${c.statut||''}</td></tr>`;}).join('');
+    const html=`${this._hdr(m)}<h1>ÉTAT DES CONGÉS — Exercice ${m.yr}</h1>
+    <table><thead><tr><th>#</th><th>Réf</th><th>Agent</th><th>Type</th><th>Départ</th><th>Retour</th><th>Jours</th><th>Statut</th></tr></thead><tbody>${rows}</tbody></table>${this._ftr(m)}`;
+    this._open(html,'État des Congés');
+  },
+
+  async etatPermissions(){
+    const[ps,ags]=await Promise.all([DB.getAll('permissions'),DB.getAll('agents')]);
+    const am=Object.fromEntries(ags.map(a=>[a.id,a]));const m=await this._min();
+    const rows=ps.map((p,i)=>{const a=am[p.agentId];return`<tr><td>${i+1}</td><td>${H.fn(a)}</td><td>${p.motif||''}</td><td>${H.fdate(p.dateDebut)}</td><td>${H.fdate(p.dateFin)}</td><td>${p.joursLegaux||0}</td><td><strong>${p.joursAccordes||0}</strong></td><td>${p.justificatifFourni||'Non'}</td><td>${p.statut||''}</td></tr>`;}).join('');
+    const html=`${this._hdr(m)}<h1>ÉTAT DES PERMISSIONS — Exercice ${m.yr}</h1>
+    <table><thead><tr><th>#</th><th>Agent</th><th>Motif</th><th>Début</th><th>Fin</th><th>J.Légaux</th><th>J.Accordés</th><th>Justif.</th><th>Statut</th></tr></thead><tbody>${rows}</tbody></table>${this._ftr(m)}`;
+    this._open(html,'État des Permissions');
+  },
+
+  async etatAbsences(){
+    const[abs,ags]=await Promise.all([DB.getAll('absences'),DB.getAll('agents')]);
+    const am=Object.fromEntries(ags.map(a=>[a.id,a]));const m=await this._min();
+    const cum={};abs.forEach(ab=>{cum[ab.agentId]=(cum[ab.agentId]||0)+1;});
+    const rows=abs.map((ab,i)=>{const a=am[ab.agentId];return`<tr><td>${i+1}</td><td>${H.fn(a)}</td><td>${a?.direction||''}</td><td>${ab.typeAbsence||''}</td><td>${H.fdate(ab.dateAbsence)}</td><td>${ab.nbJours||1}</td><td>${cum[ab.agentId]||1}</td><td style="font-size:10px">${H.sanction(cum[ab.agentId]||1)}</td><td>${ab.statut||''}</td></tr>`;}).join('');
+    const html=`${this._hdr(m)}<h1>RAPPORT DES ABSENCES IRRÉGULIÈRES</h1>
+    <table><thead><tr><th>#</th><th>Agent</th><th>Direction</th><th>Type</th><th>Date</th><th>Jours</th><th>Cumul</th><th>Sanction</th><th>Statut</th></tr></thead><tbody>${rows}</tbody></table>${this._ftr(m)}`;
+    this._open(html,'Rapport des Absences');
+  },
+
+  async etatSoldes(){
+    const[ags,cgs]=await Promise.all([DB.getAll('agents'),DB.getAll('conges')]);
+    const m=await this._min();
+    const rows=ags.map((a,i)=>{
+      const anc=H.anc(a.datePriseService);const d=H.droits(a.typeContrat,anc);
+      const pris=cgs.filter(c=>c.agentId===a.id&&!['Refusé','Annulé'].includes(c.statut)).reduce((s,c)=>s+(parseInt(c.joursAccordes)||0),0);
+      const sol=d.j-pris;const rep=Math.min(Math.max(sol,0),d.cum);
+      return`<tr><td>${i+1}</td><td>${a.matricule}</td><td>${H.fn(a)}</td><td>${a.typeContrat||''}</td><td>${anc}a</td><td>${d.j}</td><td>${pris}</td><td style="font-weight:800;color:${sol<0?'#C62828':sol<5?'#E65100':'#1B5E20'}">${sol}</td><td>${rep}</td></tr>`;
+    }).join('');
+    const html=`${this._hdr(m)}<h1>ÉTAT DES SOLDES DE CONGÉS — Exercice ${m.yr}</h1>
+    <table><thead><tr><th>#</th><th>Matricule</th><th>Agent</th><th>Contrat</th><th>Anc.</th><th>Droits/An</th><th>Pris</th><th>Solde</th><th>Reportable</th></tr></thead><tbody>${rows}</tbody></table>
+    <div class="sigs"><div class="sig"><div class="sig-line"></div><div style="font-size:11px">Le Directeur des Affaires Financières<br><strong>${m.drh}</strong></div></div></div>${this._ftr(m)}`;
+    this._open(html,'État des Soldes de Congés');
+  },
+
+  async situationPeriode(){
+    // Prompt user for period via a mini overlay
+    const period=await new Promise(res=>{
+      const ov=document.createElement('div');
+      ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:5000;display:flex;align-items:center;justify-content:center';
+      ov.innerHTML=`<div style="background:#fff;border-radius:12px;padding:24px;width:420px">
+        <div style="font-size:14px;font-weight:800;color:#1B5E20;margin-bottom:16px">📅 Situation par période</div>
+        <div style="margin-bottom:12px;font-size:12px">
+          <label style="display:block;font-weight:600;margin-bottom:4px">Date de début</label>
+          <input type="date" id="_pd1" style="width:100%;padding:8px;border:1.5px solid #ccc;border-radius:6px;font-size:12px">
+        </div>
+        <div style="margin-bottom:16px;font-size:12px">
+          <label style="display:block;font-weight:600;margin-bottom:4px">Date de fin</label>
+          <input type="date" id="_pd2" style="width:100%;padding:8px;border:1.5px solid #ccc;border-radius:6px;font-size:12px">
+        </div>
+        <div style="margin-bottom:16px;font-size:12px">
+          <label style="display:block;font-weight:600;margin-bottom:6px">Données à inclure</label>
+          <label style="display:flex;gap:6px;margin-bottom:4px"><input type="checkbox" id="_pc" checked> Congés</label>
+          <label style="display:flex;gap:6px;margin-bottom:4px"><input type="checkbox" id="_pp" checked> Permissions</label>
+          <label style="display:flex;gap:6px"><input type="checkbox" id="_pa" checked> Absences</label>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button onclick="window._pRes(null)" style="padding:8px 16px;background:#ECEFF1;border:none;border-radius:6px;cursor:pointer;font-size:12px">Annuler</button>
+          <button onclick="window._pRes({d1:document.getElementById('_pd1').value,d2:document.getElementById('_pd2').value,c:document.getElementById('_pc').checked,p:document.getElementById('_pp').checked,a:document.getElementById('_pa').checked})" style="padding:8px 16px;background:#1B5E20;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700">🖨️ Générer</button>
+        </div>
+      </div>`;
+      document.body.appendChild(ov);
+      window._pRes=v=>{document.body.removeChild(ov);delete window._pRes;res(v);};
+    });
+    if(!period||!period.d1||!period.d2){if(period)UI.toast('Veuillez saisir les deux dates','error');return;}
+    const d1=new Date(period.d1),d2=new Date(period.d2);d2.setHours(23,59,59);
+    if(d1>d2){UI.toast('La date de début doit être avant la date de fin','error');return;}
+    const[ags,cgs,perms,abs]=await Promise.all([DB.getAll('agents'),DB.getAll('conges'),DB.getAll('permissions'),DB.getAll('absences')]);
+    const am=Object.fromEntries(ags.map(a=>[a.id,a]));
+    const m=await this._min();
+    const inRange=(dateStr)=>{if(!dateStr)return false;const d=new Date(dateStr);return d>=d1&&d<=d2;};
+    let html=`${this._hdr(m)}<h1>SITUATION DU PERSONNEL PAR PÉRIODE</h1>
+    <div style="margin-bottom:14px;padding:10px;background:#E8F5E9;border-radius:6px;font-size:12px">
+      Période: <strong>${H.fdate(period.d1)}</strong> au <strong>${H.fdate(period.d2)}</strong>
+    </div>`;
+    if(period.c){
+      const fcgs=cgs.filter(c=>inRange(c.dateDepart)||inRange(c.dateRetourPrevu));
+      html+=`<h2>CONGÉS (${fcgs.length})</h2>`;
+      if(fcgs.length){
+        const rows=fcgs.map((c,i)=>{const a=am[c.agentId];return`<tr><td>${i+1}</td><td><strong>${H.fn(a)}</strong></td><td>${a?.matricule||''}</td><td>${a?.direction||''}</td><td>${c.typeConge||''}</td><td>${H.fdate(c.dateDepart)}</td><td>${H.fdate(c.dateRetourPrevu)}</td><td>${c.joursAccordes||0}j</td><td>${c.statut||''}</td></tr>`;}).join('');
+        html+=`<table><thead><tr><th>#</th><th>Agent</th><th>Matricule</th><th>Direction</th><th>Type</th><th>Départ</th><th>Retour</th><th>Jours</th><th>Statut</th></tr></thead><tbody>${rows}</tbody></table>`;
+      }else html+='<p style="color:#78909C;font-size:12px;margin-bottom:14px">Aucun congé sur cette période.</p>';
+    }
+    if(period.p){
+      const fperms=perms.filter(p=>inRange(p.dateDebut)||inRange(p.dateFin));
+      html+=`<h2>PERMISSIONS (${fperms.length})</h2>`;
+      if(fperms.length){
+        const rows=fperms.map((p,i)=>{const a=am[p.agentId];return`<tr><td>${i+1}</td><td><strong>${H.fn(a)}</strong></td><td>${a?.matricule||''}</td><td>${a?.direction||''}</td><td>${p.motif||''}</td><td>${H.fdate(p.dateDebut)}</td><td>${H.fdate(p.dateFin)}</td><td>${p.joursAccordes||0}j</td><td>${p.statut||''}</td></tr>`;}).join('');
+        html+=`<table><thead><tr><th>#</th><th>Agent</th><th>Matricule</th><th>Direction</th><th>Motif</th><th>Début</th><th>Fin</th><th>Jours</th><th>Statut</th></tr></thead><tbody>${rows}</tbody></table>`;
+      }else html+='<p style="color:#78909C;font-size:12px;margin-bottom:14px">Aucune permission sur cette période.</p>';
+    }
+    if(period.a){
+      const fabs=abs.filter(a=>inRange(a.dateAbsence));
+      html+=`<h2>ABSENCES (${fabs.length})</h2>`;
+      if(fabs.length){
+        const rows=fabs.map((ab,i)=>{const a=am[ab.agentId];return`<tr><td>${i+1}</td><td><strong>${H.fn(a)}</strong></td><td>${a?.matricule||''}</td><td>${a?.direction||''}</td><td>${ab.typeAbsence||''}</td><td>${H.fdate(ab.dateAbsence)}</td><td>${ab.nbJours||1}</td><td>${ab.statut||''}</td></tr>`;}).join('');
+        html+=`<table><thead><tr><th>#</th><th>Agent</th><th>Matricule</th><th>Direction</th><th>Type</th><th>Date</th><th>Jours</th><th>Statut</th></tr></thead><tbody>${rows}</tbody></table>`;
+      }else html+='<p style="color:#78909C;font-size:12px;margin-bottom:14px">Aucune absence sur cette période.</p>';
+    }
+    html+=`<div class="sigs"><div class="sig"><div class="sig-line"></div><div style="font-size:11px">Le Directeur des Affaires Financières<br><strong>${m.drh}</strong></div></div></div>${this._ftr(m)}`;
+    this._open(html,'Situation du Personnel par Période');
+  },
+
+  async selectAgent(){
+    const ags=await DB.getAll('agents');if(!ags.length){UI.toast('Aucun agent enregistré','error');return;}
+    const id=await new Promise(res=>{
+      const ov=document.createElement('div');
+      ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:5000;display:flex;align-items:center;justify-content:center';
+      ov.innerHTML=`<div style="background:#fff;border-radius:12px;padding:20px;width:480px;max-height:80vh;overflow-y:auto">
+        <div style="font-size:14px;font-weight:800;color:#1B5E20;margin-bottom:12px">Sélectionner un agent</div>
+        <input placeholder="Rechercher..." style="width:100%;padding:8px;border:1.5px solid #ccc;border-radius:6px;margin-bottom:10px;font-size:12px"
+          oninput="this.nextElementSibling.querySelectorAll('.ai').forEach(d=>{d.style.display=d.textContent.toLowerCase().includes(this.value.toLowerCase())?'':'none'})">
+        <div>${ags.map(a=>`<div class="ai" onclick="window._selRes(${a.id})" style="padding:9px;cursor:pointer;border-bottom:1px solid #eee;font-size:12px"><strong>${H.esc(a.matricule)}</strong> — ${H.esc(H.fn(a))} <span style="color:#78909C">${H.esc(a.direction||'')}</span></div>`).join('')}</div>
+        <button onclick="window._selRes(null)" style="margin-top:10px;padding:7px 14px;background:#ECEFF1;border:none;border-radius:6px;cursor:pointer;font-size:12px">Annuler</button>
+      </div>`;
+      document.body.appendChild(ov);
+      window._selRes=v=>{document.body.removeChild(ov);delete window._selRes;res(v);};
+    });
+    if(id)this.ficheAgent(id);
+  }
+};
+
+// ═══════ EXCEL ═══════
+const Excel={
+  _wb:null,
+
+  async exportAll(){
+    if(typeof XLSX==='undefined'){UI.toast('SheetJS non disponible — vérifiez votre connexion','error');return;}
+    UI.loading(true);
+    try{
+      const wb=XLSX.utils.book_new();
+      const ags=await DB.getAll('agents');
+      const am=Object.fromEntries(ags.map(a=>[a.id,a]));
+      const fn=a=>H.fn(am[a]);
+
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(ags.map(a=>({
+        '_id':a.id,'Matricule':a.matricule,'Nom':a.nom,'Prénoms':a.prenom,
+        'Date Naissance':a.dateNaissance,'Lieu Naissance':a.lieuNaissance,
+        'Sexe':a.sexe,'Sit. Matrimoniale':a.situationMatrimoniale,'Nb Enfants':a.nbEnfants,
+        'Direction':a.direction,'Poste':a.poste,'Corps':a.corps,'Catégorie':a.categorie,
+        'Échelon':a.echelon,'Lieu Affectation':a.lieuAffectation,'Type Contrat':a.typeContrat,
+        'Date Prise Service':a.datePriseService,'Date Fin Contrat':a.dateFinContrat,
+        'Statut':a.statut,'CNI':a.cni,'Téléphone':a.tel,'Email':a.email,
+        'Diplôme':a.diplome,'Spécialité':a.specialite,'Observations':a.observations
+      }))),'PERSONNEL');
+
+      const cgs=await DB.getAll('conges');
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(cgs.map(c=>({
+        '_id':c.id,'_agentId':c.agentId,'Matricule':am[c.agentId]?.matricule||'','Nom Agent':fn(c.agentId),
+        'Type Congé':c.typeConge,'Date Départ':c.dateDepart,'Date Retour Prévu':c.dateRetourPrevu,
+        'Date Reprise':c.dateRepriseEffective,'Intérimaire':c.interimaire,
+        'Jours Demandés':c.joursDemandes,'Jours Accordés':c.joursAccordes,
+        'Statut':c.statut,'Visa':c.visaResponsable,'Observations':c.observations
+      }))),'CONGES');
+
+      const ps=await DB.getAll('permissions');
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(ps.map(p=>({
+        '_id':p.id,'_agentId':p.agentId,'Matricule':am[p.agentId]?.matricule||'','Nom Agent':fn(p.agentId),
+        'Motif':p.motif,'Date Début':p.dateDebut,'Date Fin':p.dateFin,'Date Retour':p.dateRetour,
+        'Jours Légaux':p.joursLegaux,'Jours Demandés':p.joursDemandes,'Jours Accordés':p.joursAccordes,
+        'Justificatif':p.justificatifFourni,'Réf Justif':p.refJustificatif,'Statut':p.statut
+      }))),'PERMISSIONS');
+
+      const abs=await DB.getAll('absences');
+      XLSX.utils.book_append_sheet(wb,XLSX.utils.json_to_sheet(abs.map(ab=>({
+        '_id':ab.id,'_agentId':ab.agentId,'Matricule':am[ab.agentId]?.matricule||'','Nom Agent':fn(ab.agentId),
+        'Type Absence':ab.typeAbsence,'Date':ab.dateAbsence,'Heure Arrivée':ab.heureArrivee,
+        'Nb Jours':ab.nbJours,'Motif Déclaré':ab.motifDeclare,'Statut':ab.statut,'Observations':ab.observations
+      }))),'ABSENCES');
+
+      const fname=`GRH_Export_${new Date().toISOString().slice(0,10)}.xlsx`;
+      XLSX.writeFile(wb,fname);
+      UI.toast(`Export réussi: ${fname}`);
+    }catch(e){UI.toast('Erreur export: '+e.message,'error');}
+    UI.loading(false);
+  },
+
+  showImport(){
+    this._wb=null;
+    document.getElementById('imp-fn').textContent='';
+    document.getElementById('imp-preview').style.display='none';
+    document.getElementById('btn-imp').disabled=true;
+    UI.open('m-import');
+  },
+
+  fileSelected(inp){
+    const f=inp.files[0];if(!f)return;
+    if(typeof XLSX==='undefined'){UI.toast('SheetJS non disponible','error');return;}
+    document.getElementById('imp-fn').textContent=`📊 ${f.name}`;
+    const r=new FileReader();
+    r.onload=e=>{
+      try{
+        this._wb=XLSX.read(e.target.result,{type:'array'});
+        const prev=this._wb.SheetNames.map(s=>{
+          const d=XLSX.utils.sheet_to_json(this._wb.Sheets[s]);
+          return`<strong>${s}</strong>: ${d.length} lignes`;
+        }).join(' · ');
+        document.getElementById('imp-preview').style.display='block';
+        document.getElementById('imp-preview').innerHTML=`📋 Feuilles détectées: ${prev}`;
+        document.getElementById('btn-imp').disabled=false;
+      }catch(e){UI.toast('Fichier invalide: '+e.message,'error');}
+    };
+    r.readAsArrayBuffer(f);
+  },
+
+  async doImport(){
+    if(!this._wb)return;
+    UI.loading(true);
+    const mode=document.getElementById('imp-mode').value;
+    const doP=document.getElementById('imp-p').checked;
+    const doC=document.getElementById('imp-c').checked;
+    const doPm=document.getElementById('imp-pm').checked;
+    const doAb=document.getElementById('imp-ab').checked;
+    const res={p:0,c:0,pm:0,ab:0};
+    try{
+      const gs=n=>{const s=this._wb.SheetNames.find(x=>x.toUpperCase().includes(n));return s?XLSX.utils.sheet_to_json(this._wb.Sheets[s]):[];};
+      if(doP){
+        if(mode==='replace')await DB.clear('agents');
+        for(const r of gs('PERSONNEL')){
+          if(!r['Matricule'])continue;
+          try{
+            await DB.add('agents',{
+              matricule:String(r['Matricule']),nom:r['Nom']||'',prenom:r['Prénoms']||r['Prenoms']||'',
+              dateNaissance:H.parseDate(r['Date Naissance']),lieuNaissance:r['Lieu Naissance']||'',
+              sexe:r['Sexe']||'',situationMatrimoniale:r['Sit. Matrimoniale']||'',
+              nbEnfants:parseInt(r['Nb Enfants'])||0,direction:r['Direction']||'',
+              poste:r['Poste']||'',corps:r['Corps']||'',categorie:r['Catégorie']||r['Categorie']||'',
+              echelon:r['Échelon']||r['Echelon']||'',lieuAffectation:r['Lieu Affectation']||'Lomé',
+              typeContrat:r['Type Contrat']||'Contractuel',datePriseService:H.parseDate(r['Date Prise Service']),
+              dateFinContrat:H.parseDate(r['Date Fin Contrat']),statut:r['Statut']||'En activité',
+              cni:r['CNI']||'',tel:String(r['Téléphone']||r['Telephone']||''),email:r['Email']||'',
+              diplome:r['Diplôme']||r['Diplome']||'',specialite:r['Spécialité']||r['Specialite']||'',
+              observations:r['Observations']||'',dateCreation:new Date().toISOString()
+            });res.p++;
+          }catch(e){if(e.name!=='ConstraintError')console.warn(e);}
+        }
+      }
+      UI._ags=[];
+      const allAgs=await DB.getAll('agents');
+      const matMap=Object.fromEntries(allAgs.map(a=>[a.matricule,a.id]));
+      if(doC){
+        if(mode==='replace')await DB.clear('conges');
+        for(const r of gs('CONGE')){
+          const aid=matMap[String(r['Matricule'])];if(!aid)continue;
+          await DB.add('conges',{agentId:aid,typeConge:r['Type Congé']||r['Type Conge']||'',
+            dateDepart:H.parseDate(r['Date Départ']||r['Date Depart']),dateRetourPrevu:H.parseDate(r['Date Retour Prévu']||r['Date Retour Prevu']),
+            dateRepriseEffective:H.parseDate(r['Date Reprise']||''),interimaire:r['Intérimaire']||r['Interimaire']||'',
+            joursDemandes:parseInt(r['Jours Demandés']||r['Jours Demandes'])||0,
+            joursAccordes:parseInt(r['Jours Accordés']||r['Jours Accordes'])||0,
+            statut:r['Statut']||'En attente',visaResponsable:r['Visa']||'',
+            observations:r['Observations']||'',dateCreation:new Date().toISOString()});res.c++;
+        }
+      }
+      if(doPm){
+        if(mode==='replace')await DB.clear('permissions');
+        for(const r of gs('PERMISSION')){
+          const aid=matMap[String(r['Matricule'])];if(!aid)continue;
+          await DB.add('permissions',{agentId:aid,motif:r['Motif']||'',
+            dateDebut:H.parseDate(r['Date Début']||r['Date Debut']),dateFin:H.parseDate(r['Date Fin']||''),
+            joursLegaux:parseInt(r['Jours Légaux']||r['Jours Legaux'])||0,
+            joursDemandes:parseInt(r['Jours Demandés']||r['Jours Demandes'])||0,
+            joursAccordes:parseInt(r['Jours Accordés']||r['Jours Accordes'])||0,
+            justificatifFourni:r['Justificatif']||'Non',refJustificatif:r['Réf Justif']||r['Ref Justif']||'',
+            statut:r['Statut']||'En attente',dateCreation:new Date().toISOString()});res.pm++;
+        }
+      }
+      if(doAb){
+        if(mode==='replace')await DB.clear('absences');
+        for(const r of gs('ABSENCE')){
+          const aid=matMap[String(r['Matricule'])];if(!aid)continue;
+          await DB.add('absences',{agentId:aid,typeAbsence:r['Type Absence']||'',
+            dateAbsence:H.parseDate(r['Date']||''),heureArrivee:r['Heure Arrivée']||r['Heure Arrivee']||'',
+            nbJours:parseFloat(r['Nb Jours'])||1,motifDeclare:r['Motif Déclaré']||r['Motif Declare']||'',
+            statut:r['Statut']||'En traitement',observations:r['Observations']||'',
+            dateCreation:new Date().toISOString()});res.ab++;
+        }
+      }
+      UI.toast(`Import réussi · ${res.p} agents · ${res.c} congés · ${res.pm} permissions · ${res.ab} absences`);
+      UI.close('m-import');
+      if(UI.page==='personnel')Personnel.load();
+      else if(UI.page==='conges')Conges.load();
+      else Dashboard.load();
+    }catch(e){UI.toast('Erreur import: '+e.message,'error');}
+    UI.loading(false);
+  }
+};
+
+// ═══════ PARAMS ═══════
+const Params={
+  async load(){this.loadDroits();this.loadPerms();this.loadDirs();this.loadSys();},
+
+  tab(el){
+    const t=el.dataset.ptab;
+    document.querySelectorAll('#params-tabs .tab').forEach(x=>x.classList.remove('active'));
+    el.classList.add('active');
+    ['droits','permlegal','dirs','users','sys'].forEach(n=>{
+      const el2=document.getElementById(`pt-${n}`);
+      if(el2)el2.style.display=n===t?'block':'none';
+    });
+    if(t==='users')Users.load();
+  },
+
+  loadDroits(){
+    const tb=document.getElementById('pt-droits-tb');if(!tb)return;
+    tb.innerHTML=DROITS.map((d,i)=>`<tr>
+      <td><input style="width:100%;border:1px solid #ccc;border-radius:4px;padding:3px 5px;font-size:11px" value="${H.esc(d.t)}" onchange="DROITS[${i}].t=this.value"></td>
+      <td><input type="number" style="width:55px;border:1px solid #ccc;border-radius:4px;padding:3px 5px;font-size:11px" value="${d.de}" onchange="DROITS[${i}].de=parseInt(this.value)||0"></td>
+      <td><input type="number" style="width:55px;border:1px solid #ccc;border-radius:4px;padding:3px 5px;font-size:11px" value="${d.a===99?99:d.a}" onchange="DROITS[${i}].a=parseInt(this.value)||99"></td>
+      <td><input type="number" style="width:55px;border:1px solid #ccc;border-radius:4px;padding:3px 5px;font-size:11px" value="${d.j}" onchange="DROITS[${i}].j=parseInt(this.value)||0"></td>
+      <td><input type="number" style="width:55px;border:1px solid #ccc;border-radius:4px;padding:3px 5px;font-size:11px" value="${d.cum}" onchange="DROITS[${i}].cum=parseInt(this.value)||0"></td>
+      <td><input style="width:100%;border:1px solid #ccc;border-radius:4px;padding:3px 5px;font-size:11px" value="${H.esc(d.base)}" onchange="DROITS[${i}].base=this.value"></td>
+      <td><button class="btn btn-danger btn-xs" onclick="Params.delDroit(${i})">🗑️</button></td>
+    </tr>`).join('');
+  },
+
+  addDroit(){
+    if(!Auth.isAdmin()){UI.toast('Seul l\'administrateur peut modifier les droits','error');return;}
+    DROITS.push({t:'Nouveau type',de:0,a:99,j:30,cum:60,base:'Base légale'});
+    this.loadDroits();this._saveDroits();Personnel.refreshContratSelect();this._refreshContratFilter();
+    UI.toast('Ligne ajoutée — modifiez et enregistrez');
+  },
+  delDroit(i){
+    if(!Auth.isAdmin()){UI.toast('Seul l\'administrateur peut modifier les droits','error');return;}
+    if(DROITS.length<=1){UI.toast('Impossible de supprimer la dernière entrée','error');return;}
+    DROITS.splice(i,1);this.loadDroits();this._saveDroits();Personnel.refreshContratSelect();this._refreshContratFilter();
+  },
+  _refreshContratFilter(){
+    const sel=document.getElementById('p-f-contrat');if(!sel)return;
+    const types=[...new Set(DROITS.map(d=>d.t))];
+    const cur=sel.value;
+    sel.innerHTML='<option value="">Tous contrats</option>'+types.map(t=>`<option value="${H.esc(t)}"${t===cur?' selected':''}>${H.esc(t)}</option>`).join('');
+  },
+
+  loadPerms(){
+    const tb=document.getElementById('pt-perm-tb');if(!tb)return;
+    const keys=Object.keys(PERMS_LEGALES);
+    tb.innerHTML=keys.map((k,i)=>{
+      const v=PERMS_LEGALES[k];
+      return`<tr style="background:${i%2?'#fff':'#EDE7F6'}">
+        <td><input style="width:100%;border:1px solid #ccc;border-radius:4px;padding:3px 5px;font-size:11px" value="${H.esc(k)}" id="pk-${i}"></td>
+        <td><input type="number" style="width:60px;border:1px solid #ccc;border-radius:4px;padding:3px 5px;font-size:11px" value="${v.j||0}" id="pj-${i}"></td>
+        <td><input style="width:100%;border:1px solid #ccc;border-radius:4px;padding:3px 5px;font-size:11px" value="${H.esc(v.just||'')}" id="pju-${i}"></td>
+        <td><button class="btn btn-primary btn-xs" onclick="Params.savePerm(${i},'${H.esc(k)}')">💾</button> <button class="btn btn-danger btn-xs" onclick="Params.delPerm('${H.esc(k)}')">🗑️</button></td>
+      </tr>`;
+    }).join('');
+  },
+
+  savePerm(i,oldKey){
+    if(!Auth.isAdmin()){UI.toast('Seul l\'administrateur peut modifier les permissions','error');return;}
+    const nk=document.getElementById(`pk-${i}`).value.trim();
+    const nj=parseInt(document.getElementById(`pj-${i}`).value)||0;
+    const nj2=document.getElementById(`pju-${i}`).value.trim();
+    if(!nk){UI.toast('Le motif ne peut pas être vide','error');return;}
+    if(oldKey!==nk){delete PERMS_LEGALES[oldKey];}
+    PERMS_LEGALES[nk]={j:nj,just:nj2};
+    this.loadPerms();this._savePerms();UI.toast('Permission enregistrée ✓');
+  },
+
+  addPerm(){
+    if(!Auth.isAdmin()){UI.toast('Seul l\'administrateur peut modifier les permissions','error');return;}
+    let k='Nouveau motif';let n=1;while(PERMS_LEGALES[k])k=`Nouveau motif ${n++}`;
+    PERMS_LEGALES[k]={j:0,just:'Justificatif requis'};
+    this.loadPerms();this._savePerms();UI.toast('Ligne ajoutée — modifiez et sauvegardez');
+  },
+
+  delPerm(key){
+    if(!Auth.isAdmin()){UI.toast('Seul l\'administrateur peut modifier les permissions','error');return;}
+    delete PERMS_LEGALES[key];this.loadPerms();this._savePerms();UI.toast('Supprimé');
+  },
+
+  async loadDirs(){
+    const el=document.getElementById('pt-dirs-list');if(!el)return;
+    const ags=await DB.getAll('agents');
+    const dirs=[...new Set(ags.map(a=>a.direction).filter(Boolean))];
+    el.innerHTML=dirs.length?dirs.map(d=>`<div style="display:flex;align-items:center;padding:8px 12px;border-bottom:1px solid var(--gray-l);font-size:12px"><span style="flex:1">${H.esc(d)}</span><span style="color:var(--gray-m);font-size:11px">${ags.filter(a=>a.direction===d).length} agent(s)</span></div>`).join(''):'<div style="padding:16px;color:var(--gray-m);font-size:12px">Ajoutez des agents pour voir les directions.</div>';
+  },
+
+  async addDir(){
+    const n=prompt('Nom de la direction / service :');
+    if(!n)return;
+    UI.toast(`Direction "${n}" sera visible après affectation d'un agent.`,'warning');
+  },
+
+  // Load DROITS & PERMS from Supabase (called once on login)
+  async loadFromDB(){
+    try{
+      const dv=await DB.prm('droits','');
+      if(dv){const parsed=JSON.parse(dv);if(Array.isArray(parsed)&&parsed.length){DROITS.length=0;parsed.forEach(d=>DROITS.push(d));}}
+    }catch(e){console.warn('droits parse error',e);}
+    try{
+      const pv=await DB.prm('perms_legales','');
+      if(pv){const parsed=JSON.parse(pv);if(parsed&&typeof parsed==='object'){Object.keys(PERMS_LEGALES).forEach(k=>delete PERMS_LEGALES[k]);Object.assign(PERMS_LEGALES,parsed);}}
+    }catch(e){console.warn('perms parse error',e);}
+  },
+
+  async loadSys(){
+    document.getElementById('sys-ministere').value=await DB.prm('ministere','');
+    document.getElementById('sys-exercice').value=await DB.prm('exercice',String(new Date().getFullYear()));
+    document.getElementById('sys-drh').value=await DB.prm('drh','');
+    document.getElementById('sys-adresse').value=await DB.prm('adresse','Lomé, Togo');
+    // Update login screen ministry name
+    const mn=await DB.prm('ministere','GRH — Ministère');
+    const el=document.getElementById('login-min-name');if(el)el.textContent=mn;
+  },
+
+  async saveSys(){
+    if(!Auth.isAdmin()){UI.toast('Seul l\'administrateur peut modifier les paramètres système','error');return;}
+    await DB.setPrm('ministere',document.getElementById('sys-ministere').value);
+    await DB.setPrm('exercice',document.getElementById('sys-exercice').value);
+    await DB.setPrm('drh',document.getElementById('sys-drh').value);
+    await DB.setPrm('adresse',document.getElementById('sys-adresse').value);
+    UI.toast('Paramètres enregistrés ✓');
+  },
+
+  // Save DROITS to Supabase after any change
+  async _saveDroits(){
+    await DB.setPrm('droits',JSON.stringify(DROITS));
+  },
+  async _savePerms(){
+    await DB.setPrm('perms_legales',JSON.stringify(PERMS_LEGALES));
+  }
+};
+
+// ═══════ APP ═══════
+const App={
+  async init(){
+    UI.loading(true);
+    document.getElementById('app').style.display='none';
+    // Header date
+    document.getElementById('hdate').textContent=new Date().toLocaleDateString('fr-FR',{weekday:'short',year:'numeric',month:'short',day:'numeric'});
+    // Check if already logged in (session persistante)
+    const{data:{session}}=await _supa.auth.getSession();
+    if(session?.user){
+      await Auth._onLogin(session.user);
+    } else {
+      document.getElementById('login-screen').style.display='flex';
+      UI.loading(false);
+    }
+    // Listen for auth changes (tab refresh, logout from another tab)
+    _supa.auth.onAuthStateChange(async(event,session)=>{
+      if(event==='SIGNED_OUT'){
+        document.getElementById('app').style.display='none';
+        document.getElementById('login-screen').style.display='flex';
+      }
+    });
+    // Nav clicks
+    document.querySelectorAll('.nav-item[data-page]').forEach(a=>{
+      a.addEventListener('click',e=>{e.preventDefault();UI.showPage(a.dataset.page);});
+    });
+    // Toggle sidebar
+    document.getElementById('btn-toggle').addEventListener('click',()=>{
+      document.getElementById('sidebar').classList.toggle('collapsed');
+    });
+    // Close modal on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(ov=>{
+      ov.addEventListener('click',e=>{if(e.target===ov)ov.classList.remove('open');});
+    });
+    // Close autocomplete on click outside
+    document.addEventListener('click',e=>{
+      if(!e.target.closest('.autocomplete-wrap'))
+        document.querySelectorAll('.autocomplete-list').forEach(l=>l.innerHTML='');
+    });
+    // Drop zones
+    this._drop('imp-dz','imp-file',f=>{const inp=document.getElementById('imp-file');const dt=new DataTransfer();dt.items.add(f);inp.files=dt.files;Excel.fileSelected(inp);});
+    this._drop('doc-dz','doc-file',f=>{const inp=document.getElementById('doc-file');const dt=new DataTransfer();dt.items.add(f);inp.files=dt.files;Documents.fileSelected(inp);});
+    // A-tabs click
+    document.querySelectorAll('#a-tabs .tab').forEach((t,i)=>{t.onclick=()=>Personnel._tab(i);});
+  },
+
+  _drop(zid,fid,cb){
+    const dz=document.getElementById(zid);if(!dz)return;
+    dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('over');});
+    dz.addEventListener('dragleave',()=>dz.classList.remove('over'));
+    dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');const f=e.dataTransfer.files[0];if(f)cb(f);});
+  },
+
+  resetDB(){
+    if(!Auth.isAdmin()){UI.toast('Seul l\'administrateur peut réinitialiser la base','error');return;}
+    UI.confirm('⚠️ RÉINITIALISATION','Cela supprimera TOUTES les données. Action irréversible. Continuer ?',async()=>{
+      await Promise.all(['agents','conges','permissions','absences','documents'].map(s=>DB.clear(s)));
+      UI._ags=[];UI.toast('Base réinitialisée');Dashboard.load();
+    });
+  }
+};
+
+// ═══════ GESTION UTILISATEURS (Admin) ═══════
+const Users={
+  async load(){
+    if(!Auth.isAdmin()){
+      document.getElementById('pt-users').innerHTML='<div class="alert alert-warn">⚠️ Réservé à l\'administrateur.</div>';
+      return;
+    }
+    const{data,error}=await _supa.from('profiles').select('*').order('created_at');
+    if(error){UI.toast('Erreur chargement utilisateurs','error');return;}
+    const tb=document.getElementById('users-tb');
+    if(!tb)return;
+    const roleLabel={admin:'👑 Admin',gestionnaire:'✏️ Gestionnaire',chef_service:'👁 Chef service'};
+    tb.innerHTML=(data||[]).map(u=>`<tr>
+      <td>${H.esc(u.nom||'')} ${H.esc(u.prenom||'')}</td>
+      <td>${H.esc(u.email||'')}</td>
+      <td>
+        <select class="form-control" style="width:130px" onchange="Users.setRole('${u.id}',this.value)" ${u.id===Auth.user.id?'disabled':''}>
+          ${['admin','gestionnaire','chef_service'].map(r=>`<option value="${r}"${u.role===r?' selected':''}>${roleLabel[r]}</option>`).join('')}
+        </select>
+      </td>
+      <td>
+        <input class="form-control" style="width:140px" placeholder="Direction" value="${H.esc(u.direction||'')}" onchange="Users.setDir('${u.id}',this.value)">
+      </td>
+      <td><span class="badge ${u.actif?'bg-success':'bg-gray'}">${u.actif?'Actif':'Inactif'}</span></td>
+      <td class="actions">
+        <button class="btn btn-warning btn-xs" onclick="Users.toggle('${u.id}',${!u.actif})" ${u.id===Auth.user.id?'disabled':''}>
+          ${u.actif?'🔒 Bloquer':'🔓 Activer'}
+        </button>
+      </td>
+    </tr>`).join('');
+  },
+
+  async setRole(id,role){
+    const{error}=await _supa.from('profiles').update({role}).eq('id',id);
+    if(error)UI.toast('Erreur : '+error.message,'error');
+    else UI.toast('Rôle mis à jour ✓');
+  },
+
+  async setDir(id,direction){
+    const{error}=await _supa.from('profiles').update({direction}).eq('id',id);
+    if(error)UI.toast('Erreur : '+error.message,'error');
+    else UI.toast('Direction mise à jour ✓');
+  },
+
+  async toggle(id,actif){
+    const{error}=await _supa.from('profiles').update({actif}).eq('id',id);
+    if(error)UI.toast('Erreur : '+error.message,'error');
+    else{UI.toast('Statut utilisateur mis à jour ✓');this.load();}
+  },
+
+  async invite(){
+    const email=prompt('Email du nouvel utilisateur :');
+    if(!email)return;
+    // Supabase Admin SDK needed for server-side invite; guide user instead
+    UI.toast(`Invitez "${email}" via Supabase Dashboard → Authentication → Users → Invite`,'warning');
+  }
+};
+
+App.init();
+
+</script>
+</body>
+</html>
