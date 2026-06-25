@@ -227,6 +227,28 @@ textarea.form-control{resize:vertical;min-height:70px;}
 <div class="loading" id="loading"><div class="spinner"></div><div style="color:var(--primary);font-weight:700;">Chargement...</div></div>
 <div id="toast-container"></div>
 
+ <!-- ═══ ÉCRAN DÉFINITION MOT DE PASSE ═══ -->
+<div id="setpwd-screen" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#1B5E20,#2E7D32,#388E3C);z-index:9100;align-items:center;justify-content:center;">
+ <div style="background:#fff;border-radius:16px;padding:36px 32px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.3);margin:16px">
+  <div style="text-align:center;margin-bottom:24px">
+   <div style="font-size:48px">🔐</div>
+   <div style="font-size:17px;font-weight:800;color:#1B5E20;margin-top:8px">Bienvenue !</div>
+   <div style="font-size:12px;color:#546E7A;margin-top:6px;line-height:1.5">C'est votre première connexion.<br>Veuillez définir votre mot de passe pour sécuriser votre compte.</div>
+  </div>
+  <div id="setpwd-error" style="display:none;background:#FFEBEE;color:#C62828;padding:10px 14px;border-radius:6px;font-size:12px;margin-bottom:14px;border-left:3px solid #C62828"></div>
+  <div style="margin-bottom:14px">
+   <label style="display:block;font-size:12px;font-weight:600;color:#37474F;margin-bottom:5px">Nouveau mot de passe</label>
+   <input id="setpwd-1" type="password" placeholder="Minimum 8 caractères" style="width:100%;padding:10px 12px;border:1.5px solid #CFD8DC;border-radius:8px;font-size:13px;outline:none" oninput="Auth.checkPwdStrength(this.value)">
+   <div id="setpwd-strength" style="margin-top:6px;height:4px;border-radius:2px;background:#E0E0E0;overflow:hidden"><div id="setpwd-strength-bar" style="height:100%;width:0;transition:all .3s;background:#4CAF50"></div></div>
+   <div id="setpwd-strength-label" style="font-size:10px;color:#78909C;margin-top:4px"></div>
+  </div>
+  <div style="margin-bottom:20px">
+   <label style="display:block;font-size:12px;font-weight:600;color:#37474F;margin-bottom:5px">Confirmer le mot de passe</label>
+   <input id="setpwd-2" type="password" placeholder="Répétez le mot de passe" style="width:100%;padding:10px 12px;border:1.5px solid #CFD8DC;border-radius:8px;font-size:13px;outline:none" onkeydown="if(event.key==='Enter')Auth.setPassword()">
+  </div>
+  <button onclick="Auth.setPassword()" style="width:100%;padding:12px;background:#1B5E20;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer" id="setpwd-btn">✅ Définir mon mot de passe</button>
+ </div>
+</div>
 <!-- ═══ ÉCRAN DE CONNEXION ═══ -->
 <div id="login-screen" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#1B5E20,#2E7D32,#388E3C);z-index:9000;align-items:center;justify-content:center;">
  <div style="background:#fff;border-radius:16px;padding:36px 32px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.3);margin:16px">
@@ -876,6 +898,41 @@ const Auth={
     UI.loading(false);
   },
 
+  checkPwdStrength(v){
+    const bar=document.getElementById('setpwd-strength-bar');
+    const lbl=document.getElementById('setpwd-strength-label');
+    if(!bar)return;
+    let score=0;
+    if(v.length>=8)score++;
+    if(/[A-Z]/.test(v))score++;
+    if(/[0-9]/.test(v))score++;
+    if(/[^A-Za-z0-9]/.test(v))score++;
+    const levels=[{w:'0%',c:'#E0E0E0',t:''},
+      {w:'25%',c:'#F44336',t:'Très faible'},
+      {w:'50%',c:'#FF9800',t:'Faible'},
+      {w:'75%',c:'#FFC107',t:'Moyen'},
+      {w:'100%',c:'#4CAF50',t:'Fort'}];
+    const l=levels[score]||levels[0];
+    bar.style.width=l.w;bar.style.background=l.c;
+    lbl.textContent=l.t;lbl.style.color=l.c;
+  },
+
+  async setPassword(){
+    const p1=document.getElementById('setpwd-1').value;
+    const p2=document.getElementById('setpwd-2').value;
+    const err=document.getElementById('setpwd-error');
+    const btn=document.getElementById('setpwd-btn');
+    err.style.display='none';
+    if(p1.length<8){err.textContent='Le mot de passe doit contenir au moins 8 caractères.';err.style.display='block';return;}
+    if(p1!==p2){err.textContent='Les deux mots de passe ne correspondent pas.';err.style.display='block';return;}
+    btn.textContent='Enregistrement...';btn.disabled=true;
+    const{error}=await _supa.auth.updateUser({password:p1});
+    btn.textContent='✅ Définir mon mot de passe';btn.disabled=false;
+    if(error){err.textContent='Erreur : '+error.message;err.style.display='block';return;}
+    document.getElementById('setpwd-screen').style.display='none';
+    UI.toast('Mot de passe défini avec succès ! Bienvenue');
+    await Auth._onLogin(Auth.user);
+  },
   canWrite(){return['admin','gestionnaire'].includes(Auth.profile?.role);},
   isAdmin(){return Auth.profile?.role==='admin';},
 };
@@ -1603,8 +1660,8 @@ const Permissions={
         <td>${H.esc(p.motif||'')}</td>
         <td>${H.fdate(p.dateDebut)}</td>
         <td>${H.fdate(p.dateFin)}</td>
-        <td><span class="badge bg-info">${p.joursLegaux||0}j</span></td>
-        <td><strong>${p.joursAccordes||0}j</strong></td>
+        <td><span class="badge bg-info">${p.joursLegaux||0} j</span></td>
+        <td><strong>${p.joursAccordes||0} j</strong></td>
         <td>${jb}</td>
         <td>${H.badge(p.statut)}</td>
         <td class="actions">
@@ -2164,7 +2221,7 @@ const Print={
       <tr><td><strong>Direction</strong></td><td>${a?.direction||''}</td><td><strong>Poste</strong></td><td>${a?.poste||''}</td></tr>
       <tr><td><strong>Motif</strong></td><td colspan="3"><strong>${p.motif}</strong></td></tr>
       <tr><td><strong>Période</strong></td><td colspan="3">Du <strong>${H.fdate(p.dateDebut)}</strong> au <strong>${H.fdate(p.dateFin)}</strong></td></tr>
-      <tr><td><strong>Durée légale</strong></td><td>${p.joursLegaux} j ouvrables</td><td><strong>Durée accordée</strong></td><td><strong>${p.joursAccordes} jours ouvrables</strong></td></tr>
+      <tr><td><strong>Durée légale</strong></td><td>${p.joursLegaux} jours ouvrables</td><td><strong>Durée accordée</strong></td><td><strong>${p.joursAccordes} jours ouvrables</strong></td></tr>
       <tr><td><strong>Justificatif</strong></td><td colspan="3">${p.justificatifFourni==='Oui'?`✓ Fourni — Réf: ${p.refJustificatif||'—'}`:'À fournir obligatoirement'}</td></tr>
       <tr><td><strong>Décision</strong></td><td colspan="3"><strong>${p.statut}</strong></td></tr>
     </table>
@@ -2670,10 +2727,25 @@ const App={
       document.getElementById('login-screen').style.display='flex';
       UI.loading(false);
     }
-    // Listen for auth changes (tab refresh, logout from another tab)
+    // Listen for auth changes
     _supa.auth.onAuthStateChange(async(event,session)=>{
+      if(event==='PASSWORD_RECOVERY'||event==='USER_UPDATED') return;
+      if(event==='SIGNED_IN'&&session?.user){
+        const created=new Date(session.user.created_at).getTime();
+        const lastSignIn=new Date(session.user.last_sign_in_at).getTime();
+        const isFirstLogin=Math.abs(created-lastSignIn)<30000;
+        if(isFirstLogin&&!Auth.user){
+          Auth.user=session.user;
+          document.getElementById('login-screen').style.display='none';
+          document.getElementById('app').style.display='none';
+          document.getElementById('setpwd-screen').style.display='flex';
+          return;
+        }
+      }
       if(event==='SIGNED_OUT'){
+        Auth.user=null;Auth.profile=null;
         document.getElementById('app').style.display='none';
+        document.getElementById('setpwd-screen').style.display='none';
         document.getElementById('login-screen').style.display='flex';
       }
     });
