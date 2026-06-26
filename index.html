@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GRH MDBESS</title>
+<title>GRH</title>
 <style>
 
 :root{--primary:#1B5E20;--primary-d:#003300;--primary-l:#4CAF50;--primary-p:#E8F5E9;
@@ -253,8 +253,8 @@ textarea.form-control{resize:vertical;min-height:70px;}
 <div id="login-screen" style="display:none;position:fixed;inset:0;background:linear-gradient(135deg,#1B5E20,#2E7D32,#388E3C);z-index:9000;align-items:center;justify-content:center;">
  <div style="background:#fff;border-radius:16px;padding:36px 32px;width:100%;max-width:400px;box-shadow:0 24px 64px rgba(0,0,0,.3);margin:16px">
   <div style="text-align:center;margin-bottom:28px">
-   <div style="font-size:48px">🏛️</div>
-   <div style="font-size:18px;font-weight:800;color:#1B5E20;margin-top:8px" id="login-min-name">GRH — MDBESS</div>
+   <div style="font-size:48px">🔰</div>
+   <div style="font-size:18px;font-weight:800;color:#1B5E20;margin-top:8px" id="login-min-name">MDBESS - RH</div>
    <div style="font-size:12px;color:#78909C;margin-top:4px">Système de Gestion des Ressources Humaines</div>
   </div>
   <div id="login-error" style="display:none;background:#FFEBEE;color:#C62828;padding:10px 14px;border-radius:6px;font-size:12px;margin-bottom:14px;border-left:3px solid #C62828"></div>
@@ -278,7 +278,7 @@ textarea.form-control{resize:vertical;min-height:70px;}
  <aside id="sidebar">
   <div class="sidebar-logo">
    <div class="logo-icon">🏛️</div>
-   <div class="logo-text"><div class="logo-title">GRH MDBESS</div><div class="logo-sub"></div></div>
+   <div class="logo-text"><div class="logo-title">MDBESS - RH</div><div class="logo-sub"></div></div>
   </div>
   <nav class="sidebar-nav">
    <a class="nav-item active" data-page="dashboard"><span class="nav-icon">📊</span><span class="sidebar-label">Tableau de bord</span></a>
@@ -309,7 +309,8 @@ textarea.form-control{resize:vertical;min-height:70px;}
     <div class="header-date" id="hdate"></div>
     <div style="display:flex;align-items:center;gap:8px;margin-left:8px;padding-left:8px;border-left:1px solid var(--border)">
      <span id="user-badge" style="font-size:11px;font-weight:700;color:var(--primary);background:var(--primary-p);padding:4px 10px;border-radius:12px"></span>
-     <button class="btn btn-secondary btn-sm no-print" onclick="Auth.logout()" title="Déconnexion">🚪</button>
+     <button class="btn btn-secondary btn-sm no-print" onclick="Auth.showChangePwd()" title="Changer mot de passe">🔐</button>
+     <button class="btn btn-secondary btn-sm no-print" onclick="Auth.logout()" title="Déconnexion">⏻</button>
     </div>
    </div>
   </header>
@@ -654,15 +655,7 @@ textarea.form-control{resize:vertical;min-height:70px;}
      <input type="hidden" id="pm-ag-id"><div id="pm-ag-disp" class="agent-badge"></div>
     </div>
     <div class="form-group"><label class="form-label">Motif <span class="req">*</span></label>
-     <select class="form-control" id="pm-motif" onchange="Permissions.updLegal()"><option value="">--</option>
-     <option>Mariage de l'agent</option><option>Mariage d'un enfant</option>
-     <option>Décès conjoint / enfant</option><option>Décès père / mère</option>
-     <option>Décès frère / sœur</option><option>Naissance enfant (père)</option>
-     <option>Déménagement</option><option>Maladie grave conjoint/enfant</option>
-     <option>Examen universitaire</option><option>Mission officielle</option>
-     <option>Formation professionnelle</option><option>Congé maternité</option>
-     <option>Congé paternité</option><option>Congé maladie ordinaire</option>
-     </select>
+     <select class="form-control" id="pm-motif" onchange="Permissions.updLegal()"><option value="">--</option></select>
     </div>
    </div>
    <div id="pm-legal-info" class="alert alert-info" style="display:none"></div>
@@ -885,7 +878,7 @@ const Auth={
     document.getElementById('login-screen').style.display='none';
     document.getElementById('app').style.display='flex';
     // Show user badge
-    const roleLabel={admin:'👑 Admin',gestionnaire:'✏️ Gestionnaire',chef_service:'👁 Chef de service'};
+    const roleLabel={admin:' Admin',gestionnaire:' Gestionnaire',chef_service:'👁 Chef de service'};
     document.getElementById('user-badge').textContent=`${prof?.nom||user.email} · ${roleLabel[prof?.role]||prof?.role}`;
     // Restrict nav for chef_service
     if(prof?.role==='chef_service'){
@@ -932,6 +925,45 @@ const Auth={
     document.getElementById('setpwd-screen').style.display='none';
     UI.toast('Mot de passe défini avec succès ! Bienvenue');
     await Auth._onLogin(Auth.user);
+  },
+  showChangePwd(){
+    document.getElementById('chgpwd-1').value='';
+    document.getElementById('chgpwd-2').value='';
+    document.getElementById('chgpwd-error').style.display='none';
+    document.getElementById('chgpwd-ok').style.display='none';
+    document.getElementById('chgpwd-bar').style.width='0';
+    document.getElementById('chgpwd-lbl').textContent='';
+    UI.open('m-chgpwd');
+  },
+
+  checkPwdStrength2(v){
+    const bar=document.getElementById('chgpwd-bar');
+    const lbl=document.getElementById('chgpwd-lbl');
+    let score=0;
+    if(v.length>=8)score++;if(/[A-Z]/.test(v))score++;
+    if(/[0-9]/.test(v))score++;if(/[^A-Za-z0-9]/.test(v))score++;
+    const levels=[{w:'0%',c:'#E0E0E0',t:''},{w:'25%',c:'#F44336',t:'Très faible'},
+      {w:'50%',c:'#FF9800',t:'Faible'},{w:'75%',c:'#FFC107',t:'Moyen'},{w:'100%',c:'#4CAF50',t:'Fort'}];
+    const l=levels[score]||levels[0];
+    bar.style.width=l.w;bar.style.background=l.c;
+    lbl.textContent=l.t;lbl.style.color=l.c;
+  },
+
+  async changePwd(){
+    const p1=document.getElementById('chgpwd-1').value;
+    const p2=document.getElementById('chgpwd-2').value;
+    const err=document.getElementById('chgpwd-error');
+    const ok=document.getElementById('chgpwd-ok');
+    const btn=document.getElementById('chgpwd-btn');
+    err.style.display='none';ok.style.display='none';
+    if(p1.length<8){err.textContent='Minimum 8 caractères requis.';err.style.display='block';return;}
+    if(p1!==p2){err.textContent='Les deux mots de passe ne correspondent pas.';err.style.display='block';return;}
+    btn.textContent='Enregistrement...';btn.disabled=true;
+    const{error}=await _supa.auth.updateUser({password:p1});
+    btn.textContent='✅ Enregistrer';btn.disabled=false;
+    if(error){err.textContent='Erreur : '+error.message;err.style.display='block';return;}
+    ok.textContent='✅ Mot de passe modifié avec succès !';ok.style.display='block';
+    setTimeout(()=>UI.close('m-chgpwd'),2000);
   },
   canWrite(){return['admin','gestionnaire'].includes(Auth.profile?.role);},
   isAdmin(){return Auth.profile?.role==='admin';},
@@ -982,7 +1014,12 @@ function _toSupa(store,obj){
   if(store==='permissions') return{
     agent_id:obj.agentId,motif:obj.motif||null,
     date_debut:obj.dateDebut||null,date_fin:obj.dateFin||null,
+    jours_legaux:obj.joursLegaux||0,
+    jours_demandes:obj.joursDemandes||0,
     jours_accordes:obj.joursAccordes||0,
+    date_retour:obj.dateRetour||null,
+    justificatif_fourni:obj.justificatifFourni||'Non',
+    ref_justificatif:obj.refJustificatif||null,
     statut:obj.statut||'En attente',observations:obj.observations||null,
   };
   if(store==='absences') return{
@@ -1025,7 +1062,13 @@ function _fromSupa(store,row){
   if(store==='permissions') return{
     id:row.id,agentId:row.agent_id,motif:row.motif,
     dateDebut:row.date_debut,dateFin:row.date_fin,
-    joursAccordes:row.jours_accordes,statut:row.statut,observations:row.observations,
+    joursLegaux:row.jours_legaux||0,
+    joursDemandes:row.jours_demandes||0,
+    joursAccordes:row.jours_accordes||0,
+    dateRetour:row.date_retour,
+    justificatifFourni:row.justificatif_fourni||'Non',
+    refJustificatif:row.ref_justificatif,
+    statut:row.statut,observations:row.observations,
   };
   if(store==='absences') return{
     id:row.id,agentId:row.agent_id,typeAbsence:row.type_absence,
@@ -1039,6 +1082,15 @@ function _fromSupa(store,row){
   };
   return row;
 }
+// Cache global agents pour éviter rechargements répétitifs
+const _cache={agents:null,ts:0};
+async function _getAgents(){
+  if(_cache.agents&&(Date.now()-_cache.ts)<60000)return _cache.agents;
+  _cache.agents=await DB.getAll('agents');
+  _cache.ts=Date.now();
+  return _cache.agents;
+}
+function _invalidateAgents(){_cache.agents=null;_cache.ts=0;}
 
 const DB={
   // ── agents filter for chef_service ───────────────────────────
@@ -1472,7 +1524,7 @@ const Personnel={
     try{
       if(id){data.id=parseInt(id);await DB.put('agents',data);UI.toast('Agent mis à jour');}
       else{await DB.add('agents',data);UI.toast('Agent enregistré');}
-      UI.close('m-agent');UI._ags=[];this.load();
+      _invalidateAgents();UI.close('m-agent');UI._ags=[];this.load();
     }catch(e){
       if(e.name==='ConstraintError')UI.toast('Matricule déjà existant','error');
       else UI.toast('Erreur: '+e.message,'error');
@@ -1481,7 +1533,7 @@ const Personnel={
 
   del(id){
     UI.confirm('Supprimer l\'agent','Cette action est irréversible. Continuer ?',async()=>{
-      await DB.del('agents',id);UI._ags=[];UI.toast('Agent supprimé');this.load();
+      await DB.del('agents',id);_invalidateAgents();UI._ags=[];UI.toast('Agent supprimé');this.load();
     });
   }
 };
@@ -1492,8 +1544,8 @@ const Conges={
 
   async load(){
     UI.loading(true);
-    [this._d]=await Promise.all([DB.getAll('conges')]);
-    const ags=await DB.getAll('agents');
+    [this._d,]=await Promise.all([DB.getAll('conges')]);
+    const ags=await _getAgents();
     this._ags=Object.fromEntries(ags.map(a=>[a.id,a]));
     this._f=[...this._d];this.render();
     UI.loading(false);
@@ -1641,7 +1693,7 @@ const Permissions={
   async load(){
     UI.loading(true);
     this._d=await DB.getAll('permissions');
-    const ags=await DB.getAll('agents');
+    const ags=await _getAgents();
     this._ags=Object.fromEntries(ags.map(a=>[a.id,a]));
     this._f=[...this._d];this.render();UI.loading(false);
   },
@@ -1692,7 +1744,11 @@ const Permissions={
     const d1=document.getElementById('pm-deb').value,d2=document.getElementById('pm-fin').value;
     if(d1&&d2)document.getElementById('pm-jd').value=H.workdays(d1,d2);
   },
-
+  refreshMotifSelect(current){
+    const sel=document.getElementById('pm-motif');if(!sel)return;
+    sel.innerHTML='<option value="">--</option>'+
+      Object.keys(PERMS_LEGALES).map(k=>`<option value="${k}"${k===current?' selected':''}>${k}</option>`).join('');
+  },
   showAdd(){
     document.getElementById('m-perm-title').textContent='➕ Nouvelle Permission';
     document.getElementById('pm-id').value='';
@@ -1700,6 +1756,7 @@ const Permissions={
     document.getElementById('pm-ag-search').value='';
     document.getElementById('pm-ag-disp').innerHTML='';
     document.getElementById('pm-motif').value='';
+    this.refreshMotifSelect('');
     ['pm-deb','pm-fin','pm-ret','pm-jl','pm-jd','pm-ja','pm-refjust','pm-obs'].forEach(f=>{const e=document.getElementById(f);if(e)e.value='';});
     document.getElementById('pm-statut').value='En attente';
     document.getElementById('pm-justif').value='Non';
@@ -1714,7 +1771,7 @@ const Permissions={
     document.getElementById('pm-ag-id').value=p.agentId;
     const a=await DB.get('agents',p.agentId);
     if(a){document.getElementById('pm-ag-search').value=H.fn(a);document.getElementById('pm-ag-disp').innerHTML=`<span class="badge bg-success" style="font-size:11px;margin-top:4px">✓ ${a.matricule} — ${H.fn(a)}</span>`;}
-    document.getElementById('pm-motif').value=p.motif||'';
+    this.refreshMotifSelect(p.motif||'');
     document.getElementById('pm-deb').value=p.dateDebut||'';
     document.getElementById('pm-fin').value=p.dateFin||'';
     document.getElementById('pm-ret').value=p.dateRetour||'';
@@ -1762,7 +1819,7 @@ const Absences={
   async load(){
     UI.loading(true);
     this._d=await DB.getAll('absences');
-    const ags=await DB.getAll('agents');
+    const ags=await _getAgents();
     this._ags=Object.fromEntries(ags.map(a=>[a.id,a]));
     this._f=[...this._d];this.render();UI.loading(false);
   },
@@ -1862,7 +1919,7 @@ const Soldes={
 
   async load(){
     UI.loading(true);
-    const [ags,cgs,perms,abs]=await Promise.all([DB.getAll('agents'),DB.getAll('conges'),DB.getAll('permissions'),DB.getAll('absences')]);
+    const [ags,cgs,perms,abs]=await Promise.all([_getAgents(),DB.getAll('conges'),DB.getAll('permissions'),DB.getAll('absences')]);
     this._data=ags.map(a=>{
       const anc=H.anc(a.datePriseService);
       const d=H.droits(a.typeContrat,anc);
@@ -2103,7 +2160,7 @@ const Rapports={
 
 // ═══════ PRINT ENGINE ═══════
 const Print={
-  async _min(){return{nom:await DB.prm('ministere','Ministère du développement à la base et de l\'économie sociale et solidaire'),drh:await DB.prm('drh','DAF - RAF'),yr:await DB.prm('exercice',String(new Date().getFullYear()))};},
+  async _min(){return{nom:await DB.prm('ministere',''),drh:await DB.prm('drh','DAF - RAF'),yr:await DB.prm('exercice',String(new Date().getFullYear()))};},
 
   _hdr(m){return`<div style="text-align:center;border-bottom:3px solid #1B5E20;padding-bottom:12px;margin-bottom:20px">
     <div style="font-size:11px;color:#555;letter-spacing:2px">REPUBLIQUE TOGOLAISE</div>
@@ -2578,7 +2635,7 @@ const Excel={
 
 // ═══════ PARAMS ═══════
 const Params={
-  async load(){this.loadDroits();this.loadPerms();this.loadDirs();this.loadSys();},
+  async load(){this.loadDroits();this.loadPerms();Permissions.refreshMotifSelect('');this.loadDirs();this.loadSys();},
 
   tab(el){
     const t=el.dataset.ptab;
@@ -2644,19 +2701,19 @@ const Params={
     if(!nk){UI.toast('Le motif ne peut pas être vide','error');return;}
     if(oldKey!==nk){delete PERMS_LEGALES[oldKey];}
     PERMS_LEGALES[nk]={j:nj,just:nj2};
-    this.loadPerms();this._savePerms();UI.toast('Permission enregistrée ✓');
+    this.loadPerms();Permissions.refreshMotifSelect('');this._savePerms();UI.toast('Permission enregistrée ✓');
   },
 
   addPerm(){
     if(!Auth.isAdmin()){UI.toast('Seul l\'administrateur peut modifier les permissions','error');return;}
     let k='Nouveau motif';let n=1;while(PERMS_LEGALES[k])k=`Nouveau motif ${n++}`;
     PERMS_LEGALES[k]={j:0,just:'Justificatif requis'};
-    this.loadPerms();this._savePerms();UI.toast('Ligne ajoutée — modifiez et sauvegardez');
+    this.loadPerms();Permissions.refreshMotifSelect('');this._savePerms();UI.toast('Ligne ajoutée — modifiez et sauvegardez');
   },
 
   delPerm(key){
     if(!Auth.isAdmin()){UI.toast('Seul l\'administrateur peut modifier les permissions','error');return;}
-    delete PERMS_LEGALES[key];this.loadPerms();this._savePerms();UI.toast('Supprimé');
+    delete PERMS_LEGALES[key];this.loadPerms();Permissions.refreshMotifSelect('');this._savePerms();UI.toast('Supprimé');
   },
 
   async loadDirs(){
@@ -2800,7 +2857,7 @@ const Users={
     if(error){UI.toast('Erreur chargement utilisateurs','error');return;}
     const tb=document.getElementById('users-tb');
     if(!tb)return;
-    const roleLabel={admin:'👑 Admin',gestionnaire:'✏️ Gestionnaire',chef_service:'👁 Chef service'};
+    const roleLabel={admin:' Admin',gestionnaire:' Gestionnaire',chef_service:'👁 Chef service'};
     tb.innerHTML=(data||[]).map(u=>`<tr>
       <td>${H.esc(u.nom||'')} ${H.esc(u.prenom||'')}</td>
       <td>${H.esc(u.email||'')}</td>
@@ -2850,5 +2907,26 @@ const Users={
 App.init();
 
 </script>
+<div class="modal-overlay" id="m-chgpwd">
+ <div class="modal" style="max-width:380px">
+  <div class="modal-header"><div class="modal-title">🔑 Changer mon mot de passe</div><button class="modal-close" onclick="UI.close('m-chgpwd')">×</button></div>
+  <div class="modal-body">
+   <div id="chgpwd-error" style="display:none;background:#FFEBEE;color:#C62828;padding:10px;border-radius:6px;font-size:12px;margin-bottom:12px;border-left:3px solid #C62828"></div>
+   <div id="chgpwd-ok" style="display:none;background:#E8F5E9;color:#1B5E20;padding:10px;border-radius:6px;font-size:12px;margin-bottom:12px;border-left:3px solid #1B5E20"></div>
+   <div class="form-group"><label class="form-label">Nouveau mot de passe</label>
+    <input class="form-control" id="chgpwd-1" type="password" placeholder="Minimum 8 caractères" oninput="Auth.checkPwdStrength2(this.value)">
+    <div style="margin-top:6px;height:4px;border-radius:2px;background:#E0E0E0;overflow:hidden"><div id="chgpwd-bar" style="height:100%;width:0;transition:all .3s"></div></div>
+    <div id="chgpwd-lbl" style="font-size:10px;color:#78909C;margin-top:3px"></div>
+   </div>
+   <div class="form-group"><label class="form-label">Confirmer le mot de passe</label>
+    <input class="form-control" id="chgpwd-2" type="password" placeholder="Répétez le mot de passe">
+   </div>
+  </div>
+  <div class="modal-footer">
+   <button class="btn btn-secondary" onclick="UI.close('m-chgpwd')">Annuler</button>
+   <button class="btn btn-primary" id="chgpwd-btn" onclick="Auth.changePwd()">✅ Enregistrer</button>
+  </div>
+ </div>
+</div>
 </body>
 </html>
